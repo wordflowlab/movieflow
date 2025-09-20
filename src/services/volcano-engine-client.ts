@@ -3,14 +3,15 @@
  * 实现视频生成的异步任务提交和状态查询
  */
 
-import axios, { AxiosInstance } from 'axios';
-import crypto from 'crypto';
+import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import Signer from '@volcengine/openapi/lib/base/sign';
 
 export interface SubmitTaskRequest {
   prompt: string;
   frames?: number;           // 帧数：121(5秒) 或 241(10秒)
   aspect_ratio?: string;      // 宽高比：16:9, 4:3, 1:1, 3:4, 9:16, 21:9
   seed?: number;              // 随机种子，-1为随机
+  version?: 'v30' | 'v30_1080p' | 'v30_pro';  // API版本，默认v30(720p)
   binary_data_base64?: string[]; // base64编码的图片（图生视频）
   image_urls?: string[];      // 图片URL（图生视频）
 }
@@ -32,9 +33,9 @@ export class VolcanoEngineClient {
   private client: AxiosInstance;
   private accessKey: string;
   private secretKey: string;
+  private baseUrl: string = 'https://visual.volcengineapi.com';
   private region: string = 'cn-north-1';
   private service: string = 'cv';
-  private baseUrl: string = 'https://visual.volcengineapi.com';
 
   constructor(accessKey: string, secretKey: string) {
     this.accessKey = accessKey;
@@ -49,27 +50,38 @@ export class VolcanoEngineClient {
       }
     });
 
-    // 添加请求拦截器来签名请求
+    // 添加请求拦截器来添加签名
     this.client.interceptors.request.use((config) => {
-      // 添加火山引擎签名（简化版，实际需要完整的签名算法）
-      config.headers['Region'] = this.region;
-      config.headers['Service'] = this.service;
-      // TODO: 实现完整的火山引擎签名算法
-      return config;
+      return this.signRequest(config);
     });
+
+    // 添加响应拦截器来处理错误
+    this.client.interceptors.response.use(
+      response => response,
+      error => {
+        throw error;
+      }
+    );
   }
 
   /**
    * 提交文本生成视频任务
    */
   async submitTextToVideoTask(request: SubmitTaskRequest): Promise<TaskResponse> {
+    // 根据版本选择不同的 req_key
+    // 720P: jimeng_t2v_v30
+    // 1080P: jimeng_t2v_v30_1080p
+    // Pro: jimeng_ti2v_v30_pro (注意是ti2v)
+    const req_key = this.getReqKey(request.version);
+
     const body = {
-      req_key: 'jimeng_ti2v_v30_pro',  // 固定值
+      req_key: req_key,
       prompt: request.prompt,
       frames: request.frames || 241,    // 默认10秒
       aspect_ratio: request.aspect_ratio || '9:16',  // 默认抖音竖屏
       seed: request.seed || -1
     };
+
 
     try {
       const response = await this.client.post(
@@ -77,8 +89,7 @@ export class VolcanoEngineClient {
         body
       );
       return response.data;
-    } catch (error) {
-      console.error('提交任务失败:', error);
+    } catch (error: any) {
       throw error;
     }
   }
@@ -87,8 +98,11 @@ export class VolcanoEngineClient {
    * 提交图片生成视频任务（首帧）
    */
   async submitImageToVideoTask(request: SubmitTaskRequest): Promise<TaskResponse> {
+    // 根据版本选择不同的 req_key
+    const req_key = this.getReqKey(request.version);
+
     const body = {
-      req_key: 'jimeng_ti2v_v30_pro',
+      req_key: req_key,
       prompt: request.prompt,
       frames: request.frames || 241,
       aspect_ratio: request.aspect_ratio || '9:16',
@@ -112,9 +126,12 @@ export class VolcanoEngineClient {
   /**
    * 查询任务状态
    */
-  async getTaskResult(taskId: string): Promise<TaskResponse> {
+  async getTaskResult(taskId: string, version?: 'v30' | 'v30_1080p' | 'v30_pro'): Promise<TaskResponse> {
+    // 根据版本选择不同的 req_key
+    const req_key = this.getReqKey(version);
+
     const body = {
-      req_key: 'jimeng_ti2v_v30_pro',
+      req_key: req_key,
       task_id: taskId
     };
 
@@ -136,12 +153,13 @@ export class VolcanoEngineClient {
   async waitForTask(
     taskId: string,
     maxWaitTime: number = 300000,  // 最长等待5分钟
-    pollInterval: number = 5000     // 每5秒查询一次
+    pollInterval: number = 5000,    // 每5秒查询一次
+    version?: 'v30' | 'v30_1080p' | 'v30_pro'   // API版本
   ): Promise<string> {
     const startTime = Date.now();
 
     while (Date.now() - startTime < maxWaitTime) {
-      const result = await this.getTaskResult(taskId);
+      const result = await this.getTaskResult(taskId, version);
 
       if (result.code !== 10000) {
         throw new Error(`API错误: ${result.message}`);
@@ -190,11 +208,11 @@ export class VolcanoEngineClient {
   /**
    * 批量等待任务完成
    */
-  async batchWaitForTasks(taskIds: string[]): Promise<string[]> {
+  async batchWaitForTasks(taskIds: string[], version?: 'v30' | 'v30_1080p' | 'v30_pro'): Promise<string[]> {
     const videoUrls: string[] = [];
 
     // 并行等待所有任务
-    const promises = taskIds.map(taskId => this.waitForTask(taskId));
+    const promises = taskIds.map(taskId => this.waitForTask(taskId, 300000, 5000, version));
     const results = await Promise.allSettled(promises);
 
     for (const result of results) {
@@ -214,6 +232,63 @@ export class VolcanoEngineClient {
    */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * 签名请求
+   */
+  private signRequest(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+    // 解析URL
+    const url = new URL(config.url || '', this.baseUrl);
+    const pathname = url.pathname;
+    const searchParams = url.searchParams;
+
+    // 准备请求头
+    config.headers = config.headers || {};
+    config.headers['Content-Type'] = 'application/json';
+    config.headers['Host'] = url.hostname;
+
+    // 构建签名请求对象
+    const requestObj = {
+      region: this.region,
+      method: (config.method || 'POST').toUpperCase(),
+      pathname: pathname,
+      params: Object.fromEntries(searchParams.entries()),
+      headers: config.headers,
+      body: config.data ? JSON.stringify(config.data) : undefined
+    };
+
+    // 创建签名器
+    const signer = new Signer(requestObj, this.service);
+
+    // 添加认证信息
+    const credentials = {
+      accessKeyId: this.accessKey,
+      secretKey: this.secretKey
+    };
+
+    signer.addAuthorization(credentials, new Date());
+
+    // 更新请求头
+    config.headers = requestObj.headers;
+
+
+    return config;
+  }
+
+  /**
+   * 获取对应版本的 req_key
+   */
+  private getReqKey(version?: 'v30' | 'v30_1080p' | 'v30_pro'): string {
+    switch (version) {
+      case 'v30_1080p':
+        return 'jimeng_t2v_v30_1080p';
+      case 'v30_pro':
+        return 'jimeng_ti2v_v30_pro';  // 注意Pro版本是ti2v
+      case 'v30':
+      default:
+        return 'jimeng_t2v_v30';
+    }
   }
 
   /**

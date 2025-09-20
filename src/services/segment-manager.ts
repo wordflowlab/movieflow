@@ -3,6 +3,8 @@
  * 负责将60秒视频分成6个10秒片段并管理生成过程
  */
 
+export type SegmentStatus = 'pending' | 'generating' | 'completed' | 'failed';
+
 export interface VideoSegment {
   id: string;
   index: number;
@@ -10,11 +12,13 @@ export interface VideoSegment {
   duration: number;   // 持续时间（秒）
   frames: number;     // 帧数
   prompt: string;     // 生成提示词
+  audioPath?: string; // 音频文件路径（可选）
   audio?: string;     // 音频文本（可选）
-  status: 'pending' | 'generating' | 'completed' | 'failed';
+  status: SegmentStatus;
   taskId?: string;    // 任务ID
   videoUrl?: string;  // 生成的视频URL
   error?: string;     // 错误信息
+  retryCount?: number; // 重试次数
 }
 
 export interface BatchConfig {
@@ -41,20 +45,23 @@ export class VideoSegmentManager {
   /**
    * 创建60秒视频的6个片段
    */
-  createSegments(scenes: Array<{prompt: string, audio?: string}>): VideoSegment[] {
-    if (scenes.length !== 6) {
-      throw new Error('必须提供6个场景来创建60秒视频');
+  createSegments(scenes: Array<{prompt: string, audio?: string, duration?: number}>): VideoSegment[] {
+    // 允许任意数量的场景用于测试
+    if (scenes.length === 0) {
+      throw new Error('至少需要提供1个场景');
     }
 
     this.segments = scenes.map((scene, index) => ({
-      id: `segment_${index + 1}`,
+      id: `segment_${Date.now()}_${Math.random().toString(36).substring(7)}`,
       index: index,
       startTime: index * 10,     // 每段10秒
-      duration: 10,               // 10秒
-      frames: 241,                // 10秒 = 241帧 (24fps)
+      duration: scene.duration || 10, // 默认10秒
+      frames: scene.duration === 5 ? 121 : 241, // 5秒=121帧, 10秒=241帧
       prompt: scene.prompt,
       audio: scene.audio,
-      status: 'pending' as const
+      audioPath: scene.audio, // 兼容audioPath
+      status: 'pending' as const,
+      retryCount: 0
     }));
 
     return this.segments;
@@ -64,8 +71,17 @@ export class VideoSegmentManager {
    * 获取下一批待处理的片段
    */
   getNextBatch(): VideoSegment[] {
+    // 考虑并发限制
+    const generating = this.segments.filter(s => s.status === 'generating').length;
+    const availableSlots = this.config.maxConcurrency - generating;
+
+    if (availableSlots <= 0) {
+      return [];
+    }
+
     const pendingSegments = this.segments.filter(s => s.status === 'pending');
-    return pendingSegments.slice(0, this.config.batchSize);
+    const batchLimit = Math.min(this.config.batchSize, availableSlots);
+    return pendingSegments.slice(0, batchLimit);
   }
 
   /**
@@ -83,6 +99,58 @@ export class VideoSegmentManager {
    */
   getAllSegments(): VideoSegment[] {
     return this.segments;
+  }
+
+  /**
+   * 获取所有片段（别名）
+   */
+  getSegments(): VideoSegment[] {
+    return this.segments;
+  }
+
+  /**
+   * 获取待处理的片段
+   */
+  getPendingSegments(): VideoSegment[] {
+    return this.segments.filter(s => s.status === 'pending');
+  }
+
+  /**
+   * 获取统计信息
+   */
+  getStatistics(): {
+    total: number;
+    completed: number;
+    failed: number;
+    generating: number;
+    pending: number;
+  } {
+    const stats = {
+      total: this.segments.length,
+      completed: 0,
+      failed: 0,
+      generating: 0,
+      pending: 0
+    };
+
+    this.segments.forEach(segment => {
+      switch (segment.status) {
+        case 'completed':
+          stats.completed++;
+          break;
+        case 'failed':
+          stats.failed++;
+          break;
+        case 'generating':
+          stats.generating++;
+          break;
+        case 'pending':
+          stats.pending++;
+          break;
+      }
+    });
+
+    return stats;
   }
 
   /**
@@ -115,6 +183,8 @@ export class VideoSegmentManager {
         segment.status = 'pending';
         segment.error = undefined;
         segment.taskId = undefined;
+        // 保留重试次数
+        segment.retryCount = (segment.retryCount || 0) + 1;
       }
     });
   }

@@ -26,6 +26,8 @@ build/
 .env
 .env.local
 .env.*.local
+.env.test
+!.env.test.example
 
 # AI Tools (auto-generated)
 .claude/
@@ -49,6 +51,10 @@ temp/
 .tmp/
 *.tmp
 *.bak
+test-output/
+test-temp/
+segments/
+videos/
 
 # Media files (generated)
 *.mp4
