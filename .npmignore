@@ -1,0 +1,37 @@
+# 源代码
+src/
+*.ts
+
+# 配置文件
+tsconfig.json
+.eslintrc.js
+.prettierrc
+
+# 测试
+test/
+*.test.js
+*.spec.js
+
+# 文档
+docs/
+*.md
+!README.md
+
+# 开发文件
+.vscode/
+.idea/
+*.log
+*.tmp
+
+# Git
+.git/
+.gitignore
+
+# 示例和模板（保留）
+# templates/
+# scripts/
+
+# 临时文件
+temp/
+output/
+segments/
