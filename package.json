@@ -1,7 +1,7 @@
 {
   "name": "movieflow-cli",
   "version": "0.1.0",
-  "description": "AI 驱动的短视频生成工具 - 基于即梦AI和Gemini的智能视频创作助手",
+  "description": "AI 驱动的短视频生成工具 - 基于火山引擎和Gemini的智能视频创作助手",
   "keywords": [
     "video",
     "短视频",
