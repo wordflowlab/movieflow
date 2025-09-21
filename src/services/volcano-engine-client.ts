@@ -67,7 +67,7 @@ export class VolcanoEngineClient {
   /**
    * 提交文本生成视频任务
    */
-  async submitTextToVideoTask(request: SubmitTaskRequest): Promise<TaskResponse> {
+  async submitTextToVideoTask(request: SubmitTaskRequest, retryCount: number = 0): Promise<TaskResponse> {
     // 根据版本选择不同的 req_key
     // 720P: jimeng_t2v_v30
     // 1080P: jimeng_t2v_v30_1080p
@@ -82,7 +82,6 @@ export class VolcanoEngineClient {
       seed: request.seed || -1
     };
 
-
     try {
       const response = await this.client.post(
         '/?Action=CVSync2AsyncSubmitTask&Version=2022-08-31',
@@ -90,6 +89,19 @@ export class VolcanoEngineClient {
       );
       return response.data;
     } catch (error: any) {
+      // 处理限流错误（429）和认证错误（401）
+      if (error.response) {
+        const status = error.response.status;
+        const maxRetries = 3;
+
+        if ((status === 429 || status === 401) && retryCount < maxRetries) {
+          // 计算延迟时间：首次5秒，之后每次翻倍
+          const delayMs = Math.min(5000 * Math.pow(2, retryCount), 30000);
+          console.log(`⚠️  遇到${status === 429 ? '限流' : '认证'}错误，${delayMs/1000}秒后重试...（第${retryCount + 1}次）`);
+          await this.delay(delayMs);
+          return this.submitTextToVideoTask(request, retryCount + 1);
+        }
+      }
       throw error;
     }
   }
@@ -198,8 +210,8 @@ export class VolcanoEngineClient {
         throw new Error('提交任务失败：未返回task_id');
       }
 
-      // 避免触发限流，延迟一下
-      await this.delay(1000);
+      // 避免触发限流，增加延迟（QPS限制为1）
+      await this.delay(2000);  // 2秒延迟确保不超过QPS限制
     }
 
     return taskIds;

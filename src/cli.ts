@@ -7,6 +7,10 @@ import fs from 'fs-extra';
 import ora from 'ora';
 import { execSync } from 'child_process';
 import { scriptExportCommand, generateScriptCommand } from './commands/script-export';
+import { PlatformDetector } from './utils/platform-detector';
+import { TaskStateManager } from './core/task-state-manager';
+import { VideoGenerator } from './core/video-generator';
+import * as dotenv from 'dotenv';
 
 const program = new Command();
 
@@ -35,6 +39,9 @@ ${processedContent}
 
 // 显示欢迎横幅
 function displayBanner(): void {
+  const platformDetector = PlatformDetector.getInstance();
+  const platform = platformDetector.getPlatform();
+
   const banner = `
 ╔═══════════════════════════════════════╗
 ║     🎬  MovieFlow  🎥                 ║
@@ -42,7 +49,8 @@ function displayBanner(): void {
 ╚═══════════════════════════════════════╝
 `;
   console.log(chalk.cyan(banner));
-  console.log(chalk.gray('  版本: 0.1.0 | 基于 Spec Kit 架构\n'));
+  console.log(chalk.gray(`  版本: 0.2.2 | 基于 Spec Kit 架构`));
+  console.log(chalk.gray(`  检测到平台: ${platform.toUpperCase()}\n`));
 }
 
 displayBanner();
@@ -58,7 +66,7 @@ program
   .command('init')
   .argument('[name]', '视频项目名称')
   .option('--here', '在当前目录初始化')
-  .option('--ai <type>', '选择 AI 助手: claude | cursor | gemini | windsurf', 'claude')
+  .option('--ai <type>', '选择 AI 助手: claude | cursor | gemini | windsurf', 'auto')
   .option('--all', '为所有支持的 AI 助手生成配置')
   .option('--no-git', '跳过 Git 初始化')
   .description('初始化一个新的视频项目')
@@ -94,7 +102,8 @@ program
         '.specify/templates',
         'videos',
         'assets',
-        'segments'
+        'segments',
+        '.movieflow-state'  // 添加状态目录
       ];
 
       for (const dir of baseDirs) {
@@ -358,6 +367,155 @@ program.on('--help', () => {
   console.log('');
   console.log(chalk.gray('更多信息: https://github.com/wordflowlab/movieflow'));
 });
+
+// generate 命令 - 生成60秒视频
+program
+  .command('generate')
+  .argument('<project>', '项目名称')
+  .option('--resume <session>', '恢复之前的会话')
+  .option('--template <type>', '使用模板: tang-monk | custom', 'tang-monk')
+  .option('--version <type>', 'API 版本: v30 | v30_1080p | v30_pro', 'v30_pro')
+  .option('--aspect <ratio>', '宽高比: 16:9 | 9:16 | 1:1 | 4:3 | 3:4', '9:16')
+  .option('--platform <type>', '平台: douyin | wechat | kuaishou', 'douyin')
+  .option('--no-audio', '禁用音频生成')
+  .option('--no-subtitle', '禁用字幕生成')
+  .option('--env <path>', '环境变量文件路径', '.env')
+  .description('生成60秒短视频')
+  .action(async (project, options) => {
+    // 加载环境变量
+    dotenv.config({ path: options.env });
+
+    // 检查 API 配置
+    if (!process.env.VOLCANO_ACCESS_KEY || !process.env.VOLCANO_SECRET_KEY) {
+      console.error(chalk.red('错误: 未找到火山引擎 API 密钥'));
+      console.error(chalk.yellow('请在 .env 文件中设置:'));
+      console.error('  VOLCANO_ACCESS_KEY=your_access_key');
+      console.error('  VOLCANO_SECRET_KEY=your_secret_key');
+      process.exit(1);
+    }
+
+    const platformDetector = PlatformDetector.getInstance();
+    const adapter = platformDetector.getAdapter();
+
+    try {
+      const generator = new VideoGenerator({
+        accessKey: process.env.VOLCANO_ACCESS_KEY,
+        secretKey: process.env.VOLCANO_SECRET_KEY,
+        outputDir: './videos',
+        tempDir: './temp',
+        maxConcurrency: 3,
+        aspectRatio: options.aspect as any,
+        platform: options.platform as 'douyin' | 'wechat' | 'kuaishou',
+        apiVersion: options.version as any
+      });
+
+      const videoPath = await generator.generateVideo({
+        projectName: project,
+        useTemplate: options.template as any,
+        enableAudio: options.audio !== false,
+        enableSubtitle: options.subtitle !== false,
+        resumeFromSession: options.resume
+      });
+
+      adapter.outputMessage(`视频生成完成: ${videoPath}`, 'success');
+    } catch (error: any) {
+      adapter.outputMessage(`生成失败: ${error.message}`, 'error');
+      process.exit(1);
+    }
+  });
+
+// sessions 命令 - 管理会话
+program
+  .command('sessions')
+  .option('--list', '列出所有会话')
+  .option('--resume <id>', '恢复指定会话')
+  .option('--clean', '清理过期会话')
+  .option('--report <id>', '显示会话报告')
+  .description('管理视频生成会话')
+  .action(async (options) => {
+    const stateManager = new TaskStateManager('.movieflow-state');
+
+    if (options.list) {
+      const sessions = await stateManager.listSessions();
+      if (sessions.length === 0) {
+        console.log(chalk.yellow('没有找到任何会话'));
+      } else {
+        console.log(chalk.cyan('\n📋 会话列表:\n'));
+        sessions.forEach(session => {
+          const completed = session.segments.filter(s => s.status === 'completed').length;
+          const status = session.completed ? '✅ 完成' : '🔄 进行中';
+          console.log(`${status} ${session.id}`);
+          console.log(`  项目: ${session.projectName}`);
+          console.log(`  进度: ${completed}/${session.totalSegments}`);
+          console.log(`  更新时间: ${new Date(session.updateTime).toLocaleString()}`);
+          console.log('');
+        });
+      }
+    } else if (options.resume) {
+      const session = await stateManager.resumeSession(options.resume);
+      if (session) {
+        console.log(chalk.green(`✅ 恢复会话: ${session.projectName}`));
+        console.log(stateManager.generateReport(session));
+      } else {
+        console.log(chalk.red('未找到指定会话'));
+      }
+    } else if (options.clean) {
+      const cleaned = await stateManager.cleanExpiredSessions();
+      console.log(chalk.green(`✅ 清理了 ${cleaned} 个过期会话`));
+    } else if (options.report) {
+      const session = await stateManager.resumeSession(options.report);
+      if (session) {
+        console.log(stateManager.generateReport(session));
+      } else {
+        console.log(chalk.red('未找到指定会话'));
+      }
+    } else {
+      program.outputHelp();
+    }
+
+    stateManager.destroy();
+  });
+
+// check 命令 - 检查环境
+program
+  .command('check')
+  .description('检查运行环境')
+  .action(async () => {
+    const platformDetector = PlatformDetector.getInstance();
+    platformDetector.showPlatformInfo();
+
+    console.log(chalk.cyan('\n🔍 检查环境配置:\n'));
+
+    // 检查 FFmpeg
+    try {
+      execSync('ffmpeg -version', { stdio: 'ignore' });
+      console.log(chalk.green('✅ FFmpeg 已安装'));
+    } catch {
+      console.log(chalk.red('❌ FFmpeg 未安装'));
+      console.log(chalk.yellow('  请访问 https://ffmpeg.org 下载安装'));
+    }
+
+    // 检查 API 密钥
+    dotenv.config();
+    if (process.env.VOLCANO_ACCESS_KEY && process.env.VOLCANO_SECRET_KEY) {
+      console.log(chalk.green('✅ 火山引擎 API 密钥已配置'));
+    } else {
+      console.log(chalk.red('❌ 火山引擎 API 密钥未配置'));
+    }
+
+    // 检查其他 API
+    if (process.env.GEMINI_API_KEY) {
+      console.log(chalk.green('✅ Gemini API 密钥已配置'));
+    }
+
+    // 显示推荐配置
+    const config = platformDetector.getRecommendedConfig();
+    console.log(chalk.cyan('\n⚙️  推荐配置:\n'));
+    console.log(`  最大并发: ${config.maxConcurrency}`);
+    console.log(`  心跳间隔: ${config.heartbeatInterval}ms`);
+    console.log(`  进度间隔: ${config.progressInterval}ms`);
+    console.log(`  详细日志: ${config.useDetailedLogs ? '开启' : '关闭'}`);
+  });
 
 // 解析命令行参数
 program.parse(process.argv);

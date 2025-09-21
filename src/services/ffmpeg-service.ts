@@ -21,6 +21,15 @@ export interface MergeOptions {
   transitionDuration?: number; // 转场时长（秒）
 }
 
+export interface AudioMergeOptions {
+  videoPath: string;           // 视频文件路径
+  audioPath?: string;          // 音频文件路径
+  subtitlePath?: string;       // 字幕文件路径
+  outputPath: string;          // 输出文件路径
+  audioVolume?: number;        // 音频音量 (0-1)
+  subtitleStyle?: 'burn' | 'soft';  // 字幕嵌入方式：burn硬字幕，soft软字幕
+}
+
 export class FFmpegService {
   private tempDir: string;
 
@@ -251,6 +260,209 @@ export class FFmpegService {
       '-c:v copy',
       '-c:a aac',
       '-shortest',  // 以较短的为准
+      '-y',
+      `"${outputPath}"`
+    ].join(' ');
+
+    await execAsync(command);
+    return outputPath;
+  }
+
+  /**
+   * 合并视频、音频和字幕
+   */
+  async mergeVideoAudioSubtitle(
+    options: AudioMergeOptions
+  ): Promise<string> {
+    const { videoPath, audioPath, subtitlePath, outputPath } = options;
+
+    if (!await fs.pathExists(videoPath)) {
+      throw new Error(`视频文件不存在: ${videoPath}`);
+    }
+
+    const parts = [
+      'ffmpeg',
+      `-i "${videoPath}"`
+    ];
+
+    // 添加音频输入
+    if (audioPath && await fs.pathExists(audioPath)) {
+      parts.push(`-i "${audioPath}"`);
+    }
+
+    // 构建复杂滤镜
+    const filters: string[] = [];
+
+    // 如果有字幕，添加字幕滤镜
+    if (subtitlePath && await fs.pathExists(subtitlePath)) {
+      if (options.subtitleStyle === 'burn') {
+        // 硬字幕（烧录到视频）
+        if (subtitlePath.endsWith('.ass')) {
+          filters.push(`ass='${subtitlePath}'`);
+        } else if (subtitlePath.endsWith('.srt')) {
+          filters.push(`subtitles='${subtitlePath}'`);
+        }
+      }
+    }
+
+    // 应用视频滤镜
+    if (filters.length > 0) {
+      parts.push(`-vf "${filters.join(',')}"`);
+    }
+
+    // 视频编码设置
+    parts.push('-c:v libx264');
+    parts.push('-preset fast');
+    parts.push('-crf 23');
+
+    // 音频处理
+    if (audioPath && await fs.pathExists(audioPath)) {
+      // 使用新音频替换原音频
+      parts.push('-map 0:v');  // 使用第一个输入的视频流
+      parts.push('-map 1:a');  // 使用第二个输入的音频流
+
+      // 音频编码设置
+      parts.push('-c:a aac');
+      parts.push('-b:a 192k');
+
+      // 音量调节
+      if (options.audioVolume !== undefined) {
+        parts.push(`-af "volume=${options.audioVolume}"`);
+      }
+    } else {
+      // 保持原音频或静音
+      parts.push('-c:a copy');
+    }
+
+    // 软字幕（作为独立轨道）
+    if (subtitlePath && options.subtitleStyle === 'soft' && await fs.pathExists(subtitlePath)) {
+      parts.push(`-i "${subtitlePath}"`);
+      parts.push('-c:s mov_text');  // MP4格式的软字幕
+    }
+
+    // 确保兼容性
+    parts.push('-pix_fmt yuv420p');
+    parts.push('-movflags +faststart');  // 优化流媒体播放
+
+    // 覆盖输出文件
+    parts.push('-y');
+    parts.push(`"${outputPath}"`);
+
+    const command = parts.join(' ');
+    console.log('执行音视频合成命令:', command);
+
+    try {
+      const { stderr } = await execAsync(command);
+      if (stderr && !stderr.includes('frame=')) {
+        console.warn('FFmpeg警告:', stderr);
+      }
+      return outputPath;
+    } catch (error) {
+      console.error('音视频合成失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 提取视频中的音频
+   */
+  async extractAudio(
+    videoPath: string,
+    outputPath: string
+  ): Promise<string> {
+    const command = [
+      'ffmpeg',
+      `-i "${videoPath}"`,
+      '-vn',  // 禁用视频
+      '-acodec copy',
+      '-y',
+      `"${outputPath}"`
+    ].join(' ');
+
+    await execAsync(command);
+    return outputPath;
+  }
+
+  /**
+   * 混合多个音频轨道
+   */
+  async mixAudioTracks(
+    mainAudio: string,
+    backgroundMusic: string,
+    outputPath: string,
+    options: {
+      musicVolume?: number;  // 背景音乐音量 (0-1)
+      fadeIn?: number;       // 淡入时长（秒）
+      fadeOut?: number;      // 淡出时长（秒）
+    } = {}
+  ): Promise<string> {
+    const musicVolume = options.musicVolume || 0.3;
+    const fadeIn = options.fadeIn || 2;
+    const fadeOut = options.fadeOut || 2;
+
+    // 获取主音频时长
+    const { stdout } = await execAsync(
+      `ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${mainAudio}"`
+    );
+    const duration = parseFloat(stdout.trim());
+
+    const command = [
+      'ffmpeg',
+      `-i "${mainAudio}"`,
+      `-i "${backgroundMusic}"`,
+      '-filter_complex',
+      `"[1:a]volume=${musicVolume},afade=in:st=0:d=${fadeIn},afade=out:st=${duration - fadeOut}:d=${fadeOut}[music];[0:a][music]amix=inputs=2:duration=shortest[out]"`,
+      '-map "[out]"',
+      '-c:a aac',
+      '-b:a 192k',
+      '-y',
+      `"${outputPath}"`
+    ].join(' ');
+
+    await execAsync(command);
+    return outputPath;
+  }
+
+  /**
+   * 获取视频信息
+   */
+  async getVideoInfo(videoPath: string): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+    fps: number;
+    hasAudio: boolean;
+  }> {
+    const command = `ffprobe -v quiet -print_format json -show_streams -show_format "${videoPath}"`;
+    const { stdout } = await execAsync(command);
+    const info = JSON.parse(stdout);
+
+    const videoStream = info.streams.find((s: any) => s.codec_type === 'video');
+    const audioStream = info.streams.find((s: any) => s.codec_type === 'audio');
+
+    return {
+      duration: parseFloat(info.format.duration),
+      width: videoStream?.width || 0,
+      height: videoStream?.height || 0,
+      fps: eval(videoStream?.r_frame_rate) || 30,  // 评估帧率分数
+      hasAudio: !!audioStream
+    };
+  }
+
+  /**
+   * 生成视频缩略图
+   */
+  async generateThumbnail(
+    videoPath: string,
+    outputPath: string,
+    timestamp: number = 1
+  ): Promise<string> {
+    const command = [
+      'ffmpeg',
+      `-i "${videoPath}"`,
+      `-ss ${timestamp}`,
+      '-vframes 1',
+      '-q:v 2',
       '-y',
       `"${outputPath}"`
     ].join(' ');

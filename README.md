@@ -9,6 +9,7 @@ MovieFlow 是一个基于 Spec Kit 架构的 AI 视频生成工具，专门为�
 
 ## ✨ 特性
 
+### 核心功能
 - 🎯 **智能分段生成**：自动将60秒视频分成6个10秒片段，分批处理
 - 🚀 **并行处理**：同时处理3个视频片段，提高生成效率
 - 🎨 **多风格支持**：Q版动画、真人、卡通等多种视觉风格
@@ -17,6 +18,13 @@ MovieFlow 是一个基于 Spec Kit 架构的 AI 视频生成工具，专门为�
 - 🎵 **音视频合成**：支持背景音乐、转场效果等后期处理
 - 📝 **专业脚本格式**：支持MV级别的分镜脚本，包含景别、运镜、转场等专业元素
 - 📊 **多格式导出**：可导出为Markdown、HTML、JSON、CSV等格式
+
+### 🆕 v0.2.2 新特性
+- 🤖 **多平台AI助手支持**：智能适配 Claude Code、Cursor、Windsurf、Gemini
+- 💾 **断点续传**：支持中断后继续生成，避免浪费API tokens
+- 📡 **实时进度追踪**：长时间任务心跳机制，防止AI助手超时
+- 🎯 **智能平台检测**：自动识别运行环境，优化输出格式
+- 📈 **会话管理**：完整的任务状态追踪和恢复机制
 
 ## 🚀 快速开始
 
@@ -47,7 +55,12 @@ MovieFlow 使用火山引擎的即梦AI来生成视频，需要先获取API密�
 
 4. **配置环境变量**
 
-   创建 `.env` 文件（不要提交到Git）：
+   复制示例配置文件：
+   ```bash
+   cp .env.example .env
+   ```
+
+   编辑 `.env` 文件（不要提交到Git）：
    ```bash
    # 在项目根目录创建 .env 文件
    touch .env
@@ -82,9 +95,47 @@ movieflow init --here
 movieflow init my-video --ai claude
 ```
 
+### 生成60秒视频
+
+```bash
+# 使用默认唐僧模板
+movieflow generate my-video --template tang-monk
+
+# 指定API版本和宽高比
+movieflow generate my-video --version v30_1080p --aspect 16:9
+
+# 禁用音频和字幕
+movieflow generate my-video --no-audio --no-subtitle
+```
+
+### 断点续传 🆕
+
+如果视频生成过程中断：
+
+```bash
+# 查看所有会话
+movieflow sessions --list
+
+# 查看会话详情
+movieflow sessions --report <session-id>
+
+# 恢复生成
+movieflow generate my-video --resume <session-id>
+
+# 清理过期会话
+movieflow sessions --clean
+```
+
 ### 使用AI助手命令
 
-在 Claude Code、Cursor 或其他 AI 助手中使用斜杠命令：
+MovieFlow 自动检测并适配不同的AI助手平台：
+
+- **Claude Code**: 富文本输出，进度条，emoji
+- **Cursor**: 简洁文本输出
+- **Windsurf**: 海洋主题动画
+- **Gemini**: 结构化输出
+
+在 AI 助手中使用斜杠命令：
 
 ```
 /video-script      # 创建视频脚本

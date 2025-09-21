@@ -5,7 +5,7 @@
 
 // 核心类
 export { VideoGenerator } from './core/video-generator';
-export type { GeneratorConfig, GenerateOptions } from './core/video-generator';
+export type { GeneratorConfig, GenerateOptions, SceneDefinition } from './core/video-generator';
 
 // 服务类
 export { VideoSegmentManager, TANG_MONK_SCENES } from './services/segment-manager';
@@ -15,7 +15,19 @@ export { VolcanoEngineClient } from './services/volcano-engine-client';
 export type { SubmitTaskRequest, TaskResponse } from './services/volcano-engine-client';
 
 export { FFmpegService } from './services/ffmpeg-service';
-export type { MergeOptions } from './services/ffmpeg-service';
+export type { MergeOptions, AudioMergeOptions } from './services/ffmpeg-service';
+
+export { AudioService } from './services/audio-service';
+export type { TTSOptions, AudioSegment, TTSEngine } from './services/audio-service';
+
+export { SubtitleService } from './services/subtitle-service';
+export type { SubtitleSegment, SubtitleStyle, SubtitleOptions } from './services/subtitle-service';
+
+export { TemplateManager } from './services/template-manager';
+export type { VideoTemplate } from './services/template-manager';
+
+export { VolcanoTTSService } from './services/volcano-tts-service';
+export type { VolcanoTTSConfig, TTSRequest, TTSResponse } from './services/volcano-tts-service';
 
 // 版本信息
 export const VERSION = '0.1.0';
