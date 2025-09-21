@@ -7,6 +7,7 @@ import fs from 'fs-extra';
 import ora from 'ora';
 import { execSync } from 'child_process';
 import { scriptExportCommand, generateScriptCommand } from './commands/script-export';
+import { validateCommand, previewCommand } from './commands/validate';
 import { PlatformDetector } from './utils/platform-detector';
 import { TaskStateManager } from './core/task-state-manager';
 import { VideoGenerator } from './core/video-generator';
@@ -353,6 +354,10 @@ program
 program.addCommand(scriptExportCommand);
 program.addCommand(generateScriptCommand);
 
+// 添加验证相关命令
+program.addCommand(validateCommand);
+program.addCommand(previewCommand);
+
 // 自定义帮助信息
 program.on('--help', () => {
   console.log('');
@@ -362,6 +367,8 @@ program.on('--help', () => {
   console.log('  $ movieflow init my-video --ai cursor');
   console.log('  $ movieflow init --here');
   console.log('  $ movieflow check');
+  console.log('  $ movieflow validate tang-monk-dating');
+  console.log('  $ movieflow preview tang-monk-dating --scene 3');
   console.log('  $ movieflow script-export --format markdown');
   console.log('  $ movieflow generate-script');
   console.log('');
@@ -476,46 +483,6 @@ program
     stateManager.destroy();
   });
 
-// check 命令 - 检查环境
-program
-  .command('check')
-  .description('检查运行环境')
-  .action(async () => {
-    const platformDetector = PlatformDetector.getInstance();
-    platformDetector.showPlatformInfo();
-
-    console.log(chalk.cyan('\n🔍 检查环境配置:\n'));
-
-    // 检查 FFmpeg
-    try {
-      execSync('ffmpeg -version', { stdio: 'ignore' });
-      console.log(chalk.green('✅ FFmpeg 已安装'));
-    } catch {
-      console.log(chalk.red('❌ FFmpeg 未安装'));
-      console.log(chalk.yellow('  请访问 https://ffmpeg.org 下载安装'));
-    }
-
-    // 检查 API 密钥
-    dotenv.config();
-    if (process.env.VOLCANO_ACCESS_KEY && process.env.VOLCANO_SECRET_KEY) {
-      console.log(chalk.green('✅ 火山引擎 API 密钥已配置'));
-    } else {
-      console.log(chalk.red('❌ 火山引擎 API 密钥未配置'));
-    }
-
-    // 检查其他 API
-    if (process.env.GEMINI_API_KEY) {
-      console.log(chalk.green('✅ Gemini API 密钥已配置'));
-    }
-
-    // 显示推荐配置
-    const config = platformDetector.getRecommendedConfig();
-    console.log(chalk.cyan('\n⚙️  推荐配置:\n'));
-    console.log(`  最大并发: ${config.maxConcurrency}`);
-    console.log(`  心跳间隔: ${config.heartbeatInterval}ms`);
-    console.log(`  进度间隔: ${config.progressInterval}ms`);
-    console.log(`  详细日志: ${config.useDetailedLogs ? '开启' : '关闭'}`);
-  });
 
 // 解析命令行参数
 program.parse(process.argv);

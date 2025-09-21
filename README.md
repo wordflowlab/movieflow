@@ -19,7 +19,14 @@ MovieFlow 是一个基于 Spec Kit 架构的 AI 视频生成工具，专门为�
 - 📝 **专业脚本格式**：支持MV级别的分镜脚本，包含景别、运镜、转场等专业元素
 - 📊 **多格式导出**：可导出为Markdown、HTML、JSON、CSV等格式
 
-### 🆕 v0.2.2 新特性
+### 🆕 v0.2.4 新特性
+- 💰 **渐进式验证系统**：L0-L1-L2三级验证，调试成本降低80%
+- 🔍 **智能提示词分析**：自动评分和优化建议（L0级，免费）
+- 🖼️ **关键帧预览**：生成静态图像预览视觉效果（L1级，约6元）
+- 🎬 **动态预览**：10秒测试视频验证动态效果（L2级，约28元）
+- 🌐 **多API支持**：集成UniAPI和云雾API，支持FLUX、DALL-E等模型
+
+### v0.2.2 特性
 - 🤖 **多平台AI助手支持**：智能适配 Claude Code、Cursor、Windsurf、Gemini
 - 💾 **断点续传**：支持中断后继续生成，避免浪费API tokens
 - 📡 **实时进度追踪**：长时间任务心跳机制，防止AI助手超时
@@ -68,9 +75,13 @@ MovieFlow 使用火山引擎的即梦AI来生成视频，需要先获取API密�
 
    添加以下内容：
    ```env
-   # 火山引擎即梦AI密钥
+   # 火山引擎即梦AI密钥（必需，用于L2预览和最终生成）
    VOLCANO_ACCESS_KEY=你的AccessKeyID
    VOLCANO_SECRET_KEY=你的SecretAccessKey
+
+   # 渐进式验证API配置（L1级图像预览）
+   UNIAPI_KEY=你的UniAPI密钥        # 推荐，支持FLUX等模型
+   YUNWU_API_KEY=你的云雾API密钥    # 备选方案
 
    # 阿里云TTS配置（推荐，稳定性更高）
    ALIYUN_TTS_APP_KEY=你的AppKey
@@ -98,6 +109,48 @@ movieflow init --here
 # 为特定AI助手初始化
 movieflow init my-video --ai claude
 ```
+
+### 🎯 渐进式验证流程（节省80%调试成本）
+
+MovieFlow 采用渐进式验证系统，让你在生成最终视频前以极低成本验证效果：
+
+#### 1. L0级验证 - 文本质量分析（免费）
+```bash
+# 分析提示词质量，获取优化建议
+movieflow validate my-video --skip-l1
+```
+
+#### 2. L1级验证 - 关键帧预览（约6元）
+```bash
+# 生成6张静态图像，预览视觉效果
+movieflow validate my-video
+
+# 使用云雾API作为图像生成服务
+movieflow validate my-video --provider yunwu
+```
+
+#### 3. L2级验证 - 动态预览（约28元）
+```bash
+# 生成10秒测试视频
+movieflow preview my-video --scene 3
+
+# 包含音频和字幕的完整预览
+movieflow preview my-video --with-audio --with-subtitle
+
+# 高质量预览
+movieflow preview my-video --quality high
+```
+
+#### 4. 最终生成 - 完整60秒视频（约170元）
+```bash
+# 确认效果后生成完整视频
+movieflow generate my-video --template tang-monk
+```
+
+#### 成本对比
+- **传统方式**：每次测试170元，3-5次调试需要510-850元
+- **渐进式验证**：L0(0元) + L1(6元) + L2(28元) + 最终(170元) = 204元
+- **节省成本**：59-76%
 
 ### 生成60秒视频
 
@@ -142,11 +195,18 @@ MovieFlow 自动检测并适配不同的AI助手平台：
 在 AI 助手中使用斜杠命令：
 
 ```
+/video-specify     # 创建项目规格
+/video-plan        # 制定技术计划
+/video-validate    # L0+L1渐进式验证 🆕
+/video-tasks       # 任务分解
+/video-preview     # L2动态预览 🆕
+/video-implement   # 生成完整视频
+
+# 细分命令
 /video-script      # 创建视频脚本
 /video-character   # 设计角色形象
 /video-scene       # 生成场景画面
 /video-voice       # 生成配音
-/video-generate    # 生成完整视频
 ```
 
 ### 使用专业脚本功能 (v0.2.1新增)
@@ -209,6 +269,28 @@ console.log(`视频已生成: ${videoPath}`);
 - **VolcanoEngineClient**: 火山引擎即梦AI接口封装
 - **FFmpegService**: 视频合成和后期处理
 - **VideoGenerator**: 协调各服务的主控制器
+- **PreviewService**: 渐进式验证服务 🆕
+- **PromptValidator**: 提示词质量分析器 🆕
+- **UniAPIClient**: UniAPI图像生成客户端 🆕
+- **YunwuAPIClient**: 云雾API图像生成客户端 🆕
+
+### 渐进式验证流程 🆕
+
+```mermaid
+graph TD
+    A[创意输入] --> B[L0: 文本分析<br/>免费]
+    B --> C{质量评分}
+    C -->|<60分| D[优化提示词]
+    D --> B
+    C -->|≥60分| E[L1: 图像预览<br/>约6元]
+    E --> F{视觉确认}
+    F -->|不满意| D
+    F -->|满意| G[L2: 动态预览<br/>约28元]
+    G --> H{效果确认}
+    H -->|需调整| D
+    H -->|满意| I[L3: 完整生成<br/>约170元]
+    I --> J[60秒成片]
+```
 
 ### 视频生成流程
 
@@ -357,10 +439,25 @@ npm test  # 在项目目录中
 
 ## ❓ 常见问题
 
-### 1. 即梦AI相关
+### 1. 成本控制相关 🆕
+
+**Q: 如何降低调试成本？**
+A: 使用渐进式验证系统：
+- L0级（免费）：先验证提示词质量
+- L1级（约6元）：生成静态图像预览
+- L2级（约28元）：生成10秒动态预览
+- 满意后再生成完整视频（约170元）
+
+**Q: 需要配置哪些API？**
+A:
+- **必需**：火山引擎API（L2预览和最终生成）
+- **推荐**：UniAPI或云雾API（L1图像预览）
+- **可选**：Gemini API（智能脚本生成）
+
+### 2. 即梦AI相关
 
 **Q: 即梦AI是免费的吗？**
-A: 不是。即梦AI是火山引擎的付费服务，每次生成视频都会产生费用。建议先小规模测试，了解费用后再批量使用。
+A: 不是。即梦AI是火山引擎的付费服务，每次生成视频都会产生费用。使用渐进式验证可以大幅降低调试成本。
 
 **Q: 提示"401 Unauthorized"错误**
 A: 检查你的API密钥是否正确配置。使用 `movieflow check` 验证环境配置。
