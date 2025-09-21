@@ -1,6 +1,6 @@
 {
   "name": "movieflow-cli",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "AI 驱动的短视频生成工具 - 支持多平台AI助手和断点续传",
   "keywords": [
     "video",

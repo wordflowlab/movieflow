@@ -9,6 +9,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import os from 'os';
 import { VolcanoTTSService } from './volcano-tts-service';
+import { AliyunTTSService } from './aliyun-tts-service';
 
 const execAsync = promisify(exec);
 
@@ -18,7 +19,7 @@ export interface TTSOptions {
   pitch?: number;      // 音调 (-50 to +50)
   volume?: number;     // 音量 (0-100)
   emotion?: string;    // 情绪（用于选择合适的语音风格）
-  engine?: 'edge-tts' | 'macos-say' | 'volcano' | 'auto';  // TTS 引擎
+  engine?: 'edge-tts' | 'macos-say' | 'volcano' | 'aliyun' | 'auto';  // TTS 引擎
 }
 
 export interface AudioSegment {
@@ -38,6 +39,7 @@ export class AudioService {
   private tempDir: string;
   private availableEngines: Map<string, TTSEngine> = new Map();
   private volcanoTTS?: VolcanoTTSService;
+  private aliyunTTS?: AliyunTTSService;
 
   constructor() {
     // 创建临时目录用于存储音频文件
@@ -92,6 +94,33 @@ export class AudioService {
       });
     }
 
+    // 检测阿里云 TTS
+    const aliyunAppKey = process.env.ALIYUN_TTS_APP_KEY;
+    const aliyunToken = process.env.ALIYUN_TTS_TOKEN;
+    if (aliyunAppKey && aliyunToken) {
+      this.availableEngines.set('aliyun', {
+        name: 'Aliyun TTS (阿里云语音合成)',
+        available: true,
+        voices: [
+          'xiaoyun', // 标准女声
+          'xiaogang', // 标准男声
+          'aiyue', // 温柔女声
+          'aixia', // 活泼女声
+        ]
+      });
+
+      // 初始化阿里云 TTS 服务
+      this.aliyunTTS = new AliyunTTSService({
+        appKey: aliyunAppKey,
+        token: aliyunToken
+      });
+    } else {
+      this.availableEngines.set('aliyun', {
+        name: 'Aliyun TTS (阿里云语音合成)',
+        available: false
+      });
+    }
+
     // 检测火山引擎 TTS
     const volcanoAppId = process.env.VOLCANO_TTS_APP_ID;
     const volcanoToken = process.env.VOLCANO_TTS_TOKEN;
@@ -100,10 +129,10 @@ export class AudioService {
         name: 'Volcano Engine TTS (豆包语音)',
         available: true,
         voices: [
-          'BV700', // 通用女声
-          'BV701', // 通用男声
-          'BV702', // 活泼女声
-          'BV703', // 新闻男声
+          'zh_female_cancan_mars_bigtts', // 大模型女声
+          'zh_male_M392_conversation_wvae_bigtts', // 大模型男声
+          'BV700_streaming', // 通用女声
+          'BV001_streaming', // 通用男声
         ]
       });
 
@@ -136,28 +165,69 @@ export class AudioService {
       `speech_${Date.now()}.mp3`
     );
 
-    if (engine === 'volcano' && this.volcanoTTS) {
-      // 使用火山引擎TTS
-      const audioPath = await this.volcanoTTS.synthesize({
-        text,
-        voice: options.voice || 'BV700',  // 默认使用通用女声
-        speed: options.speed,
-        volume: options.volume ? options.volume / 100 : undefined,
-        pitch: options.pitch,
-        emotion: options.emotion,
-        format: 'mp3'
-      });
-      // 将生成的文件移动到目标位置
-      await fs.move(audioPath, outputPath, { overwrite: true });
-    } else if (engine === 'edge-tts') {
-      await this.generateWithEdgeTTS(text, outputPath, options);
-    } else if (engine === 'macos-say') {
-      await this.generateWithMacOSSay(text, outputPath, options);
-    } else {
-      // 如果没有可用的 TTS，生成静音音频
-      await this.generateSilentAudio(outputPath, 10);
+    // 尝试使用选定的引擎，失败时自动降级
+    let enginesAttempted = new Set<string>();
+    let currentEngine = engine;
+
+    while (currentEngine !== 'silent') {
+      try {
+        if (currentEngine === 'aliyun' && this.aliyunTTS) {
+          // 使用阿里云TTS
+          console.log(`☁️ 尝试使用阿里云TTS...`);
+          const audioPath = await this.aliyunTTS.synthesize({
+            text,
+            voice: options.voice || 'xiaoyun',  // 默认使用小云女声
+            speed: options.speed ? (options.speed - 1) * 500 : 0,  // 转换为阿里云的范围 -500~500
+            volume: options.volume || 50,
+            pitch: options.pitch || 0,
+            format: 'mp3'
+          });
+          // 将生成的文件移动到目标位置
+          await fs.move(audioPath, outputPath, { overwrite: true });
+          console.log(`✅ 阿里云TTS成功`);
+          return outputPath;
+        } else if (currentEngine === 'volcano' && this.volcanoTTS) {
+          // 使用火山引擎TTS
+          console.log(`🌋 尝试使用火山引擎TTS...`);
+          const audioPath = await this.volcanoTTS.synthesize({
+            text,
+            voice: options.voice || 'zh_female_cancan_mars_bigtts',  // 默认使用大模型女声
+            speed: options.speed,
+            volume: options.volume ? options.volume / 100 : undefined,
+            pitch: options.pitch,
+            emotion: options.emotion,
+            format: 'mp3'
+          });
+          // 将生成的文件移动到目标位置
+          await fs.move(audioPath, outputPath, { overwrite: true });
+          console.log(`✅ 火山引擎TTS成功`);
+          return outputPath;
+        } else if (currentEngine === 'edge-tts') {
+          console.log(`🌐 尝试使用Edge-TTS...`);
+          await this.generateWithEdgeTTS(text, outputPath, options);
+          console.log(`✅ Edge-TTS成功`);
+          return outputPath;
+        } else if (currentEngine === 'macos-say') {
+          console.log(`🍎 尝试使用macOS Say...`);
+          await this.generateWithMacOSSay(text, outputPath, options);
+          console.log(`✅ macOS Say成功`);
+          return outputPath;
+        }
+      } catch (error: any) {
+        console.error(`⚠️  ${currentEngine} 失败: ${error.message}`);
+        enginesAttempted.add(currentEngine);
+
+        // 获取下一个可用引擎
+        currentEngine = await this.getNextAvailableEngine(enginesAttempted);
+        if (currentEngine !== 'silent') {
+          console.log(`🔄 降级到: ${currentEngine}`);
+        }
+      }
     }
 
+    // 如果所有引擎都失败，生成静音音频
+    console.warn(`🔇 所有TTS引擎都失败，生成静音音频`);
+    await this.generateSilentAudio(outputPath, 10);
     return outputPath;
   }
 
@@ -223,7 +293,10 @@ export class AudioService {
       }
     }
 
-    // 自动选择：优先火山引擎TTS，其次 edge-tts，最后 macOS say
+    // 自动选择：优先阿里云TTS，其次火山引擎TTS，然后 edge-tts，最后 macOS say
+    if (this.availableEngines.get('aliyun')?.available) {
+      return 'aliyun';
+    }
     if (this.availableEngines.get('volcano')?.available) {
       return 'volcano';
     }
@@ -232,6 +305,23 @@ export class AudioService {
     }
     if (this.availableEngines.get('macos-say')?.available) {
       return 'macos-say';
+    }
+
+    return 'silent';
+  }
+
+  /**
+   * 获取下一个可用的TTS引擎（用于降级）
+   */
+  private async getNextAvailableEngine(
+    attempted: Set<string>
+  ): Promise<string> {
+    const enginePriority = ['aliyun', 'volcano', 'edge-tts', 'macos-say'];
+
+    for (const engine of enginePriority) {
+      if (!attempted.has(engine) && this.availableEngines.get(engine)?.available) {
+        return engine;
+      }
     }
 
     return 'silent';

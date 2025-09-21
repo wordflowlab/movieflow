@@ -57,7 +57,7 @@ export class VolcanoTTSService {
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer; ${this.config.accessToken}`
+        'Authorization': `Bearer;${this.config.accessToken}`
       }
     });
   }
@@ -72,34 +72,32 @@ export class VolcanoTTSService {
       const payload = {
         app: {
           appid: this.config.appId,
-          token: this.config.accessToken,
+          token: 'fake_token',  // 文档说明：无实际鉴权作用的Fake token，可传任意非空字符串
           cluster: 'volcano_tts'
         },
         user: {
           uid: 'movieflow_user'
         },
         audio: {
-          voice_type: request.voice || 'BV700',  // 默认使用通用女声
+          voice_type: request.voice || 'zh_female_cancan_mars_bigtts',  // 使用大模型音色
           encoding: request.format || 'mp3',
           speed_ratio: request.speed || 1.0,
-          volume_ratio: request.volume || 1.0,
-          pitch_ratio: request.pitch || 1.0,
-          emotion: request.emotion
+          volume_ratio: request.volume || 1.0
+          // 注意：pitch_ratio不支持，emotion需要enable_emotion=true
         },
         request: {
           reqid: this.generateRequestId(),
           text: request.text,
-          text_type: 'plain',
-          operation: 'query'
+          operation: 'query'  // HTTP只能使用query
         }
       };
 
       const response = await this.httpClient.post('', payload);
 
-      if (response.data.code === 0 && response.data.data) {
+      if (response.data.code === 3000 && response.data.data) {  // 成功码是3000
         // 如果返回的是base64音频数据
-        if (response.data.data.audio) {
-          const audioBuffer = Buffer.from(response.data.data.audio, 'base64');
+        if (response.data.data) {
+          const audioBuffer = Buffer.from(response.data.data, 'base64');
           await fs.writeFile(outputPath, audioBuffer);
           return outputPath;
         }
@@ -132,7 +130,7 @@ export class VolcanoTTSService {
 
       const ws = new WebSocket(this.config.wsUrl!, {
         headers: {
-          'Authorization': `Bearer; ${this.config.accessToken}`
+          'Authorization': `Bearer;${this.config.accessToken}`
         }
       });
 
@@ -146,17 +144,15 @@ export class VolcanoTTSService {
           uid: 'movieflow_user'
         },
         audio: {
-          voice_type: request.voice || 'BV700',
+          voice_type: request.voice || 'zh_female_cancan_mars_bigtts',
           encoding: request.format || 'mp3',
           speed_ratio: request.speed || 1.0,
-          volume_ratio: request.volume || 1.0,
-          pitch_ratio: request.pitch || 1.0
+          volume_ratio: request.volume || 1.0
         },
         request: {
           reqid: this.generateRequestId(),
           text: request.text,
-          text_type: 'plain',
-          operation: 'submit'
+          operation: 'submit'  // WebSocket使用submit流式返回
         }
       };
 
@@ -232,24 +228,20 @@ export class VolcanoTTSService {
    */
   getAvailableVoices(): Array<{id: string, name: string, description: string}> {
     return [
-      // 通用音色
-      { id: 'BV700', name: '通用女声', description: '温柔自然的女声' },
-      { id: 'BV701', name: '通用男声', description: '稳重大气的男声' },
-      { id: 'BV702', name: '活泼女声', description: '年轻活泼的女声' },
-      { id: 'BV703', name: '新闻男声', description: '专业的新闻播音男声' },
+      // 大模型音色（推荐）
+      { id: 'zh_female_cancan_mars_bigtts', name: '灿灿-女声', description: '温柔自然的女声' },
+      { id: 'zh_male_M392_conversation_wvae_bigtts', name: '男声-对话', description: '自然对话男声' },
+      { id: 'zh_female_shuangkuaisisi_moon_bigtts', name: '思思-女声', description: '活泼可爱的女声' },
+      { id: 'zh_male_chunhou_moon_bigtts', name: '醇厚男声', description: '醇厚磁性的男声' },
 
-      // 情感音色
-      { id: 'BV704', name: '温柔女声', description: '温柔甜美的女声' },
-      { id: 'BV705', name: '激情男声', description: '充满激情的男声' },
-      { id: 'BV706', name: '童声', description: '可爱的童声' },
+      // 传统音色（兼容）
+      { id: 'BV700_streaming', name: '通用女声', description: '温柔自然的女声' },
+      { id: 'BV001_streaming', name: '通用男声', description: '稳重大气的男声' },
+      { id: 'BV002_streaming', name: '活泼女声', description: '年轻活泼的女声' },
 
-      // 方言音色
-      { id: 'BV707', name: '粤语女声', description: '标准粤语女声' },
-      { id: 'BV708', name: '四川话男声', description: '四川方言男声' },
-
-      // 英文音色
-      { id: 'BV709', name: '英文女声', description: '流利的英文女声' },
-      { id: 'BV710', name: '英文男声', description: '标准的英文男声' }
+      // 多语种音色
+      { id: 'zh_female_qingxin_moon_bigtts', name: '清新女声', description: '清新甜美的女声' },
+      { id: 'zh_male_wennuan_moon_bigtts', name: '温暖男声', description: '温暖亲切的男声' }
     ];
   }
 

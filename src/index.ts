@@ -29,6 +29,9 @@ export type { VideoTemplate } from './services/template-manager';
 export { VolcanoTTSService } from './services/volcano-tts-service';
 export type { VolcanoTTSConfig, TTSRequest, TTSResponse } from './services/volcano-tts-service';
 
+export { AliyunTTSService } from './services/aliyun-tts-service';
+export type { AliyunTTSConfig } from './services/aliyun-tts-service';
+
 // 版本信息
 export const VERSION = '0.1.0';
 

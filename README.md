@@ -72,6 +72,10 @@ MovieFlow 使用火山引擎的即梦AI来生成视频，需要先获取API密�
    VOLCANO_ACCESS_KEY=你的AccessKeyID
    VOLCANO_SECRET_KEY=你的SecretAccessKey
 
+   # 阿里云TTS配置（推荐，稳定性更高）
+   ALIYUN_TTS_APP_KEY=你的AppKey
+   ALIYUN_TTS_TOKEN=你的Token
+
    # 可选：Gemini API密钥（用于智能脚本生成）
    GEMINI_API_KEY=你的GeminiKey
    ```
