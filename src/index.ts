@@ -33,7 +33,8 @@ export { AliyunTTSService } from './services/aliyun-tts-service';
 export type { AliyunTTSConfig } from './services/aliyun-tts-service';
 
 // 版本信息
-export const VERSION = '0.1.0';
+import { VERSION } from './utils/version';
+export { VERSION };
 
 // 默认配置
 export const DEFAULT_CONFIG = {

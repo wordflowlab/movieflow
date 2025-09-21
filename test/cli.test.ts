@@ -207,7 +207,7 @@ describe('MovieFlow CLI', () => {
           name: 'config-video',
           type: 'video',
           ai: 'claude',
-          version: '0.1.0',
+          version: expect.any(String),
           settings: expect.objectContaining({
             defaultDuration: 10,
             defaultFrames: 241,

@@ -11,6 +11,7 @@ import { validateCommand, previewCommand } from './commands/validate';
 import { PlatformDetector } from './utils/platform-detector';
 import { TaskStateManager } from './core/task-state-manager';
 import { VideoGenerator } from './core/video-generator';
+import { getVersion, getVersionInfo } from './utils/version';
 import * as dotenv from 'dotenv';
 
 const program = new Command();
@@ -50,7 +51,7 @@ function displayBanner(): void {
 ╚═══════════════════════════════════════╝
 `;
   console.log(chalk.cyan(banner));
-  console.log(chalk.gray(`  版本: 0.2.2 | 基于 Spec Kit 架构`));
+  console.log(chalk.gray(`  ${getVersionInfo()}`));
   console.log(chalk.gray(`  检测到平台: ${platform.toUpperCase()}\n`));
 }
 
@@ -59,7 +60,7 @@ displayBanner();
 program
   .name('movieflow')
   .description(chalk.cyan('MovieFlow - AI 驱动的短视频生成工具初始化'))
-  .version('0.1.0', '-v, --version', '显示版本号')
+  .version(getVersion(), '-v, --version', '显示版本号')
   .helpOption('-h, --help', '显示帮助信息');
 
 // init 命令 - 初始化视频项目
@@ -142,7 +143,7 @@ program
         type: 'video',
         ai: options.ai,
         created: new Date().toISOString(),
-        version: '0.1.0',
+        version: getVersion(),
         settings: {
           defaultDuration: 10,  // 默认10秒片段
           defaultFrames: 241,   // 10秒 = 241帧
