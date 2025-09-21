@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import ora from 'ora';
 import { execSync } from 'child_process';
+import { scriptExportCommand, generateScriptCommand } from './commands/script-export';
 
 const program = new Command();
 
@@ -339,6 +340,10 @@ program
     }
   });
 
+// 添加脚本导出相关命令
+program.addCommand(scriptExportCommand);
+program.addCommand(generateScriptCommand);
+
 // 自定义帮助信息
 program.on('--help', () => {
   console.log('');
@@ -348,6 +353,8 @@ program.on('--help', () => {
   console.log('  $ movieflow init my-video --ai cursor');
   console.log('  $ movieflow init --here');
   console.log('  $ movieflow check');
+  console.log('  $ movieflow script-export --format markdown');
+  console.log('  $ movieflow generate-script');
   console.log('');
   console.log(chalk.gray('更多信息: https://github.com/wordflowlab/movieflow'));
 });

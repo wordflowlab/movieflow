@@ -70,6 +70,69 @@ interface ScenePrompt {
   characters?: CharacterDesc[];   // 角色描述
   objects?: ObjectDesc[];         // 物体描述
   background?: string;            // 背景描述
+
+  // 专业镜头语言扩展
+  shotNumber?: number;            // 镜头编号（1-7）
+  shotType?: ShotType;            // 景别类型
+  timeCode?: TimeCode;            // 时间码
+  cameraWork?: CameraWork;        // 运镜方式
+  transition?: TransitionType;    // 转场效果
+  layers?: SceneLayers;           // 画面层次
+}
+
+// 景别类型
+enum ShotType {
+  EXTREME_CLOSE_UP = 'extreme_close_up',  // 大特写
+  CLOSE_UP = 'close_up',                   // 特写
+  MEDIUM_CLOSE_UP = 'medium_close_up',     // 中特写
+  MEDIUM = 'medium',                        // 中景
+  MEDIUM_LONG = 'medium_long',             // 中远景
+  LONG = 'long',                           // 远景
+  EXTREME_LONG = 'extreme_long'            // 大远景
+}
+
+// 时间码
+interface TimeCode {
+  start: string;                   // 开始时间 "00:00:00"
+  end: string;                     // 结束时间 "00:00:10"
+  duration: number;                // 持续时间（秒）
+}
+
+// 运镜方式
+enum CameraWork {
+  STATIC = 'static',               // 固定镜头
+  PAN_LEFT = 'pan_left',           // 左摇
+  PAN_RIGHT = 'pan_right',         // 右摇
+  TILT_UP = 'tilt_up',            // 上摇
+  TILT_DOWN = 'tilt_down',        // 下摇
+  ZOOM_IN = 'zoom_in',            // 推镜
+  ZOOM_OUT = 'zoom_out',          // 拉镜
+  TRACKING = 'tracking',           // 跟拍
+  DOLLY = 'dolly',                // 移动
+  CRANE = 'crane',                // 升降
+  HANDHELD = 'handheld'           // 手持
+}
+
+// 转场效果类型
+enum TransitionType {
+  CUT = 'cut',                     // 硬切
+  DISSOLVE = 'dissolve',           // 溶解
+  FADE = 'fade',                   // 淡入淡出
+  WIPE = 'wipe',                   // 擦除
+  SLIDE = 'slide',                 // 滑动
+  ZOOM = 'zoom',                   // 缩放
+  BLUR = 'blur',                   // 模糊
+  GLITCH = 'glitch',              // 故障
+  MORPH = 'morph'                 // 变形
+}
+
+// 画面层次
+interface SceneLayers {
+  foreground?: string;             // 前景描述
+  midground?: string;              // 中景描述
+  background?: string;             // 背景描述
+  depth?: 'shallow' | 'medium' | 'deep';  // 景深
+  focusPoint?: string;             // 焦点位置
 }
 
 enum SceneStatus {
