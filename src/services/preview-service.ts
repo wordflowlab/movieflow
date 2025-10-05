@@ -3,12 +3,14 @@
  * 提供 L0-L2 级别的验证，降低调试成本
  */
 
-import { UniAPIClient } from './uniapi-client';
+import { UniAPIClient, ImageStyle } from './uniapi-client';
 import { YunwuAPIClient } from './yunwu-client';
 import { VolcanoEngineClient } from './volcano-engine-client';
 import { PromptValidator } from './prompt-validator';
 import fs from 'fs-extra';
 import path from 'path';
+
+export type { ImageStyle };
 
 export interface ValidationResult {
   level: 'L0' | 'L1' | 'L2';
@@ -96,9 +98,9 @@ export class PreviewService {
   }
 
   /**
-   * L1级验证：图像预览（约6元）
+   * L1级验证：图像预览（约3-6元，取决于风格）
    */
-  async validateL1(scenes: SceneConfig[]): Promise<L1Result> {
+  async validateL1(scenes: SceneConfig[], style: ImageStyle = 'full'): Promise<L1Result> {
     if (!this.imageClient) {
       return {
         success: false,
@@ -118,15 +120,19 @@ export class PreviewService {
     }
 
     try {
-      const imageUrls = await this.imageClient.generateKeyframes(scenes);
+      const imageUrls = await this.imageClient.generateKeyframes(scenes, style);
       const savedPaths: string[] = [];
 
+      const stylePrefix = style === 'full' ? 'full' : style;
       for (let i = 0; i < imageUrls.length; i++) {
-        const localPath = path.join(this.outputDir, `l1-preview-${i + 1}.jpg`);
+        const localPath = path.join(this.outputDir, `l1-${stylePrefix}-${i + 1}.jpg`);
         savedPaths.push(localPath);
       }
 
-      const estimatedCost = scenes.length * 1;
+      // 根据风格计算成本
+      const costFactor = this.validator.getStyleCostFactor(style);
+      const estimatedCost = scenes.length * 1 * costFactor;
+
       return {
         success: true,
         images: savedPaths,

@@ -3,15 +3,17 @@ import chalk from 'chalk';
 import ora from 'ora';
 import * as path from 'path';
 import * as fs from 'fs-extra';
-import { PreviewService } from '../services/preview-service';
+import { PreviewService, ImageStyle } from '../services/preview-service';
 import { UniAPIClient } from '../services/uniapi-client';
 import { YunwuAPIClient } from '../services/yunwu-client';
+import { PromptValidator } from '../services/prompt-validator';
 
 export const validateCommand = new Command('validate')
   .argument('<project>', '项目名称')
   .option('--skip-l0', '跳过文本验证')
   .option('--skip-l1', '跳过图像预览')
   .option('--provider <type>', 'L1图像生成服务: uniapi | yunwu', 'uniapi')
+  .option('--style <type>', '图像风格: wireframe | sketch | lineart | full', 'full')
   .option('--scenes <numbers>', '指定场景编号，如 "1,3,5"')
   .option('--env <path>', '环境变量文件路径', '.env')
   .description('执行L0和L1级渐进式验证')
@@ -99,7 +101,20 @@ export const validateCommand = new Command('validate')
 
       // L1级验证
       if (!options.skipL1) {
-        spinner.text = `L1级验证: 使用${options.provider.toUpperCase()}生成关键帧...`;
+        // 验证风格参数
+        const validStyles: ImageStyle[] = ['wireframe', 'sketch', 'lineart', 'full'];
+        const imageStyle = options.style as ImageStyle;
+
+        if (!validStyles.includes(imageStyle)) {
+          spinner.fail(`无效的风格参数: ${options.style}`);
+          console.error(chalk.yellow('可用风格: wireframe, sketch, lineart, full'));
+          process.exit(1);
+        }
+
+        const validator = new PromptValidator();
+        const styleDesc = validator.getStyleDescription(imageStyle);
+
+        spinner.text = `L1级验证: 使用${options.provider.toUpperCase()}生成${styleDesc}...`;
 
         const sceneConfigs = selectedScenes.map((s: any, i: number) => ({
           id: `scene-${i + 1}`,
@@ -107,16 +122,24 @@ export const validateCommand = new Command('validate')
           name: s.name || `场景${i + 1}`
         }));
 
-        const l1Result = await previewService.validateL1(sceneConfigs);
+        const l1Result = await previewService.validateL1(sceneConfigs, imageStyle);
 
         if (l1Result.success) {
-          console.log(chalk.green('\n🖼️  L1 关键帧预览已生成:'));
+          console.log(chalk.green(`\n🖼️  L1 ${styleDesc}已生成:`));
           l1Result.images.forEach((img, index) => {
             const sceneName = selectedScenes[index]?.name || `场景${index + 1}`;
             console.log(`  ${img} - ${sceneName}`);
           });
 
-          console.log(`\n  💰 预览成本: ${chalk.yellow(l1Result.estimatedCost + '元')}`);
+          console.log(`\n  🎨 风格: ${chalk.cyan(styleDesc)}`);
+          console.log(`  💰 预览成本: ${chalk.yellow(l1Result.estimatedCost.toFixed(1) + '元')}`);
+
+          if (imageStyle !== 'full') {
+            const fullCost = selectedScenes.length * 1;
+            const saved = fullCost - l1Result.estimatedCost;
+            console.log(`  💡 相比完整渲染节省: ${chalk.green(saved.toFixed(1) + '元')}`);
+          }
+
           console.log(`  ✅ 视觉效果确认完成`);
         } else {
           spinner.fail('L1图像生成失败');
@@ -130,9 +153,15 @@ export const validateCommand = new Command('validate')
 
       // 显示后续步骤
       console.log('\n' + chalk.cyan('后续操作:'));
+
+      if (options.style && options.style !== 'full') {
+        console.log('  如分镜构图满意，可生成完整渲染:');
+        console.log(`    ${chalk.white(`movieflow validate ${project} --style full`)}`);
+      }
+
       console.log('  如需优化提示词，请修改脚本后重新验证');
       console.log('  如效果满意，可执行:');
-      console.log(`    ${chalk.white('movieflow preview')} ${project} - L2动态预览`);
+      console.log(`    ${chalk.white('movieflow preview')} ${project} - L2动态预览（可选）`);
       console.log(`    ${chalk.white('movieflow generate')} ${project} - 完整视频生成`);
 
     } catch (error: any) {

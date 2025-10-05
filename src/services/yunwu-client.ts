@@ -6,6 +6,9 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { SceneConfig } from './preview-service';
+import { PromptValidator } from './prompt-validator';
+
+export type ImageStyle = 'wireframe' | 'sketch' | 'full' | 'lineart';
 
 export interface YunwuAPIConfig {
   apiKey: string;
@@ -33,10 +36,12 @@ export class YunwuAPIClient {
   private client: AxiosInstance;
   private model: string;
   private apiKey: string;
+  private validator: PromptValidator;
 
   constructor(apiKey?: string, config?: Partial<YunwuAPIConfig>) {
     this.apiKey = apiKey || process.env.YUNWU_API_KEY || '';
     this.model = config?.model || 'flux-pro'; // 默认使用FLUX Pro
+    this.validator = new PromptValidator();
 
     this.client = axios.create({
       baseURL: config?.baseUrl || 'https://yunwu.ai/v1',
@@ -58,12 +63,13 @@ export class YunwuAPIClient {
   /**
    * 生成关键帧图像
    */
-  async generateKeyframes(scenes: SceneConfig[]): Promise<string[]> {
+  async generateKeyframes(scenes: SceneConfig[], style: ImageStyle = 'full'): Promise<string[]> {
     if (!this.isConfigured()) {
       throw new Error('云雾API未配置，请设置YUNWU_API_KEY环境变量');
     }
 
-    console.log(`  🎨 使用云雾API ${this.model} 模型生成图像...`);
+    const styleDesc = this.validator.getStyleDescription(style);
+    console.log(`  🎨 使用云雾API ${this.model} 模型生成图像 (${styleDesc})...`);
     const imageUrls: string[] = [];
 
     for (let i = 0; i < scenes.length; i++) {
@@ -73,7 +79,8 @@ export class YunwuAPIClient {
       try {
         const imageUrl = await this.generateImage({
           prompt: scene.prompt,
-          aspect_ratio: '9:16' // 抖音竖屏格式
+          aspect_ratio: '9:16', // 抖音竖屏格式
+          style
         });
         imageUrls.push(imageUrl);
         console.log(`    ✅ 场景 ${scene.id} 生成成功`);
@@ -98,11 +105,15 @@ export class YunwuAPIClient {
     prompt: string;
     model?: string;
     aspect_ratio?: string;
-    style?: string;
+    style?: ImageStyle;
   }): Promise<string> {
+    // 根据风格转换提示词
+    const imageStyle = params.style || 'full';
+    const convertedPrompt = this.validator.convertToStyle(params.prompt, imageStyle);
+
     const request: YunwuImageRequest = {
       model: params.model || this.model,
-      prompt: this.enhancePrompt(params.prompt, params.style),
+      prompt: convertedPrompt,
       n: 1,
       aspect_ratio: params.aspect_ratio || '9:16',
       response_format: 'url'
@@ -143,29 +154,6 @@ export class YunwuAPIClient {
     }
   }
 
-  /**
-   * 增强提示词（针对云雾API优化）
-   */
-  private enhancePrompt(prompt: string, style?: string): string {
-    // 云雾API对中文支持较好，保持原始语言
-    let enhancedPrompt = prompt;
-
-    // 根据风格添加特定标签
-    if (style === 'cartoon') {
-      enhancedPrompt += '，Q版卡通风格，可爱画风';
-    } else if (style === 'realistic') {
-      enhancedPrompt += '，超写实风格，照片级真实感';
-    } else if (style === 'artistic') {
-      enhancedPrompt += '，艺术风格，创意构图';
-    }
-
-    // 如果没有明确的质量描述，添加默认质量标记
-    if (!prompt.includes('质量') && !prompt.includes('画质')) {
-      enhancedPrompt += '，高清画质，细节丰富';
-    }
-
-    return enhancedPrompt;
-  }
 
   /**
    * 获取可用模型列表

@@ -6,6 +6,9 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { SceneConfig } from './preview-service';
+import { PromptValidator } from './prompt-validator';
+
+export type ImageStyle = 'wireframe' | 'sketch' | 'full' | 'lineart';
 
 export interface UniAPIConfig {
   apiKey: string;
@@ -34,10 +37,12 @@ export class UniAPIClient {
   private client: AxiosInstance;
   private model: string;
   private apiKey: string;
+  private validator: PromptValidator;
 
   constructor(apiKey?: string, config?: Partial<UniAPIConfig>) {
     this.apiKey = apiKey || process.env.UNIAPI_KEY || '';
     this.model = config?.model || 'flux-kontext-pro';
+    this.validator = new PromptValidator();
 
     this.client = axios.create({
       baseURL: config?.baseUrl || 'https://api.uniapi.io/v1',
@@ -59,12 +64,13 @@ export class UniAPIClient {
   /**
    * 生成关键帧图像
    */
-  async generateKeyframes(scenes: SceneConfig[]): Promise<string[]> {
+  async generateKeyframes(scenes: SceneConfig[], style: ImageStyle = 'full'): Promise<string[]> {
     if (!this.isConfigured()) {
       throw new Error('UniAPI未配置，请设置UNIAPI_KEY环境变量');
     }
 
-    console.log(`  🎨 使用UniAPI ${this.model} 模型生成图像...`);
+    const styleDesc = this.validator.getStyleDescription(style);
+    console.log(`  🎨 使用UniAPI ${this.model} 模型生成图像 (${styleDesc})...`);
     const imageUrls: string[] = [];
 
     for (let i = 0; i < scenes.length; i++) {
@@ -74,7 +80,8 @@ export class UniAPIClient {
       try {
         const imageUrl = await this.generateImage({
           prompt: scene.prompt,
-          aspect_ratio: '9:16' // 抖音竖屏格式
+          aspect_ratio: '9:16', // 抖音竖屏格式
+          style
         });
         imageUrls.push(imageUrl);
         console.log(`    ✅ 场景 ${scene.id} 生成成功`);
@@ -99,15 +106,19 @@ export class UniAPIClient {
     prompt: string;
     model?: string;
     aspect_ratio?: string;
-    style?: string;
+    style?: ImageStyle;
     quality?: string;
   }): Promise<string> {
+    // 根据风格转换提示词
+    const imageStyle = params.style || 'full';
+    const convertedPrompt = this.validator.convertToStyle(params.prompt, imageStyle);
+
     const request: ImageGenerationRequest = {
       model: params.model || this.model,
-      prompt: this.enhancePrompt(params.prompt),
+      prompt: convertedPrompt,
       n: 1,
       aspect_ratio: params.aspect_ratio || '9:16',
-      style: params.style || 'vivid',
+      style: imageStyle === 'full' ? 'vivid' : 'natural', // 线框图用natural，完整用vivid
       quality: params.quality || 'standard'
     };
 

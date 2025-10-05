@@ -6,60 +6,29 @@ import path from 'path';
 import fs from 'fs-extra';
 import ora from 'ora';
 import { execSync } from 'child_process';
-import { scriptExportCommand, generateScriptCommand } from './commands/script-export';
-import { validateCommand, previewCommand } from './commands/validate';
 import { PlatformDetector } from './utils/platform-detector';
-import { TaskStateManager } from './core/task-state-manager';
-import { VideoGenerator } from './core/video-generator';
 import { getVersion, getVersionInfo } from './utils/version';
-import * as dotenv from 'dotenv';
 
 const program = new Command();
 
-// 辅助函数：处理命令模板生成 Markdown 格式
-function generateMarkdownCommand(template: string, scriptPath: string): string {
-  return template.replace(/{SCRIPT}/g, scriptPath);
-}
-
-// 辅助函数：生成 TOML 格式命令
-function generateTomlCommand(template: string, scriptPath: string): string {
-  const descMatch = template.match(/description:\s*(.+)/);
-  const description = descMatch ? descMatch[1].trim() : '命令说明';
-
-  // 移除 YAML frontmatter
-  const content = template.replace(/^---[\s\S]*?---\n/, '');
-
-  // 替换 {SCRIPT}
-  const processedContent = content.replace(/{SCRIPT}/g, scriptPath);
-
-  return `description = "${description}"
-
-prompt = """
-${processedContent}
-"""`;
-}
-
 // 显示欢迎横幅
 function displayBanner(): void {
-  const platformDetector = PlatformDetector.getInstance();
-  const platform = platformDetector.getPlatform();
-
   const banner = `
 ╔═══════════════════════════════════════╗
 ║     🎬  MovieFlow  🎥                 ║
 ║     AI 驱动的短视频生成工具           ║
+║     Spec-Kit Compatible               ║
 ╚═══════════════════════════════════════╝
 `;
   console.log(chalk.cyan(banner));
-  console.log(chalk.gray(`  ${getVersionInfo()}`));
-  console.log(chalk.gray(`  检测到平台: ${platform.toUpperCase()}\n`));
+  console.log(chalk.gray(`  ${getVersionInfo()}\n`));
 }
 
 displayBanner();
 
 program
   .name('movieflow')
-  .description(chalk.cyan('MovieFlow - AI 驱动的短视频生成工具初始化'))
+  .description(chalk.cyan('MovieFlow - AI 驱动的短视频生成工具 (基于 Spec-Kit)'))
   .version(getVersion(), '-v, --version', '显示版本号')
   .helpOption('-h, --help', '显示帮助信息');
 
@@ -98,14 +67,9 @@ program
       const baseDirs = [
         '.specify',
         '.specify/memory',
+        '.specify/specs',
+        '.specify/projects',
         '.specify/scripts',
-        '.specify/scripts/bash',
-        '.specify/scripts/powershell',
-        '.specify/templates',
-        'videos',
-        'assets',
-        'segments',
-        '.movieflow-state'  // 添加状态目录
       ];
 
       for (const dir of baseDirs) {
@@ -115,20 +79,24 @@ program
       // 根据 AI 类型创建特定目录
       const aiDirs: string[] = [];
       if (options.all) {
-        aiDirs.push('.claude/commands', '.cursor/commands', '.gemini/commands', '.windsurf/workflows');
+        aiDirs.push('.claude/commands', '.cursor/prompts', '.gemini/commands', '.windsurf/workflows');
       } else {
         switch(options.ai) {
           case 'claude':
             aiDirs.push('.claude/commands');
             break;
           case 'cursor':
-            aiDirs.push('.cursor/commands');
+            aiDirs.push('.cursor/prompts');
             break;
           case 'gemini':
             aiDirs.push('.gemini/commands');
             break;
           case 'windsurf':
             aiDirs.push('.windsurf/workflows');
+            break;
+          case 'auto':
+            // 自动检测，创建所有目录
+            aiDirs.push('.claude/commands', '.cursor/prompts', '.gemini/commands', '.windsurf/workflows');
             break;
         }
       }
@@ -154,92 +122,213 @@ program
 
       await fs.writeJson(path.join(projectPath, '.specify', 'config.json'), config, { spaces: 2 });
 
-      // 创建 spec.md 文件
-      const packageRoot = path.resolve(__dirname, '..');
-      const templatesDir = path.join(packageRoot, 'templates', 'commands');
-      const scriptsDir = path.join(packageRoot, 'scripts');
+      // 创建 Constitution (项目原则)
+      const constitution = `# MovieFlow 项目原则
 
-      let specContent = `# MovieFlow Spec - AI 短视频生成命令规范
+## 核心理念
 
-本文件定义了 MovieFlow 支持的所有斜杠命令。
-在 Claude、Cursor 或其他 AI 助手中使用这些命令进行视频创作。
+MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前通过多个层级验证效果，降低调试成本。
 
-## 核心概念
+## 验证层级
 
-- **分段生成**: 60秒视频分为6个10秒片段
-- **并行处理**: 同时处理3个任务避免超限
-- **视频合成**: 使用FFmpeg合并片段
+1. **L0 级 (免费)** - 文本质量分析
+   - 评估提示词完整性
+   - 提供优化建议
 
+2. **L1 级 (约3-6元)** - 图像预览
+   - wireframe: 黑白线框图，快速验证分镜
+   - full: 完整彩色渲染，验证最终效果
+
+3. **L2 级 (约28元, 可选)** - 动态预览
+   - 生成10秒测试视频
+   - 验证运动效果
+
+4. **L3 级 (约170元)** - 最终生成
+   - 完整60秒视频
+
+## 开发准则
+
+- **成本优先**: 优先使用低成本验证方式
+- **快速迭代**: 通过线框图快速验证构图
+- **质量保证**: 满意后才进入下一层级
+- **规范驱动**: 所有功能通过 Slash 命令执行
 `;
 
-      if (await fs.pathExists(templatesDir)) {
-        const commandFiles = await fs.readdir(templatesDir);
+      await fs.writeFile(path.join(projectPath, '.specify', 'memory', 'constitution.md'), constitution);
 
-        // 生成合并的 spec.md
-        for (const file of commandFiles.sort()) {
-          if (file.endsWith('.md')) {
-            const content = await fs.readFile(path.join(templatesDir, file), 'utf-8');
-            const commandName = path.basename(file, '.md');
-            specContent += `## /${commandName}\n\n${content}\n\n`;
-          }
+      // 创建 Slash 命令模板
+      const commands = [
+        {
+          name: 'video-specify',
+          description: '创建视频项目规范',
+          prompt: `# 创建视频项目规范
+
+请根据用户描述创建视频项目规范。
+
+输出格式：创建 .specify/specs/<编号>-<名称>/spec.md 文件
+
+## 规范应包含
+
+1. **项目概述** - 视频目的和目标受众
+2. **内容要求** - 场景描述、角色设定、情节梗概
+3. **技术要求** - 时长、分辨率、风格等
+4. **验证标准** - 如何判断视频是否满足要求
+
+用户输入：{args}
+`
+        },
+        {
+          name: 'video-plan',
+          description: '创建技术实现计划',
+          prompt: `# 创建技术实现计划
+
+基于视频规范，创建详细的技术实现计划。
+
+输出格式：创建 .specify/specs/<编号>-<名称>/plan.md 文件
+
+## 计划应包含
+
+1. **技术选型** - API版本、画质、音频方案
+2. **分镜设计** - 6个10秒场景的详细描述
+3. **资源准备** - 素材、配音、字幕等
+4. **验证策略** - 选择合适的验证层级（L0/L1/L2）
+
+用户输入：{args}
+`
+        },
+        {
+          name: 'video-script',
+          description: '生成视频脚本',
+          prompt: `# 生成视频脚本
+
+根据技术计划生成详细的6场景视频脚本。
+
+输出格式：.specify/projects/<项目名>/script.json
+
+脚本结构：
+\`\`\`json
+{
+  "title": "视频标题",
+  "scenes": [
+    {
+      "id": 1,
+      "duration": 10,
+      "prompt": "场景提示词",
+      "description": "场景描述",
+      "voiceover": "配音文本"
+    }
+  ]
+}
+\`\`\`
+
+用户输入：{args}
+`
+        },
+        {
+          name: 'video-validate',
+          description: 'L0+L1 渐进式验证',
+          prompt: `# 执行渐进式验证
+
+运行 L0 文本分析和 L1 图像预览验证。
+
+命令选项：
+- --style wireframe: 黑白线框图（约3元）
+- --style full: 完整渲染（约6元）
+- --scenes 1,3,5: 指定验证的场景
+
+执行步骤：
+1. 读取项目脚本
+2. 运行 L0 验证分析每个场景的提示词质量
+3. 如果通过，运行 L1 图像预览
+4. 生成验证报告
+
+用户输入：{args}
+`
+        },
+        {
+          name: 'video-preview',
+          description: 'L2 动态预览（可选）',
+          prompt: `# 生成动态预览
+
+生成10秒测试视频验证动态效果。
+
+命令选项：
+- --scene N: 指定预览场景（1-6）
+- --with-audio: 包含音频
+- --quality high: 高质量预览
+
+执行步骤：
+1. 选择场景
+2. 调用火山引擎 API 生成10秒视频
+3. 可选：添加音频和字幕
+4. 输出预览文件
+
+用户输入：{args}
+`
+        },
+        {
+          name: 'video-implement',
+          description: '生成完整60秒视频',
+          prompt: `# 生成完整视频
+
+执行最终视频生成，创建60秒完整视频。
+
+执行步骤：
+1. 确认所有验证已通过
+2. 分6批生成10秒片段（并发3个）
+3. 生成配音和字幕
+4. 使用 FFmpeg 合成最终视频
+5. 输出到 .specify/projects/<项目名>/output/
+
+用户输入：{args}
+`
         }
-        await fs.writeFile(path.join(projectPath, '.specify', 'spec.md'), specContent);
+      ];
 
-        // 为每个 AI 助手生成特定格式的命令文件
-        for (const file of commandFiles) {
-          if (file.endsWith('.md')) {
-            const content = await fs.readFile(path.join(templatesDir, file), 'utf-8');
-            const commandName = path.basename(file, '.md');
+      // 为每个 AI 助手生成命令文件
+      for (const cmd of commands) {
+        // Claude Code 格式 (Markdown)
+        if (aiDirs.some(dir => dir.includes('.claude'))) {
+          const claudePath = path.join(projectPath, '.claude', 'commands', `${cmd.name}.md`);
+          const claudeContent = `---
+description: ${cmd.description}
+---
 
-            // 提取脚本路径
-            const shMatch = content.match(/sh:\s*(.+)/);
-            const scriptPath = shMatch ? shMatch[1].trim() : `.specify/scripts/bash/${commandName}.sh`;
-
-            // 为各 AI 助手生成命令文件
-            if (aiDirs.some(dir => dir.includes('.claude'))) {
-              const claudePath = path.join(projectPath, '.claude', 'commands', file);
-              const claudeContent = generateMarkdownCommand(content, scriptPath);
-              await fs.writeFile(claudePath, claudeContent);
-            }
-
-            if (aiDirs.some(dir => dir.includes('.cursor'))) {
-              const cursorPath = path.join(projectPath, '.cursor', 'commands', file);
-              const cursorContent = generateMarkdownCommand(content, scriptPath);
-              await fs.writeFile(cursorPath, cursorContent);
-            }
-
-            if (aiDirs.some(dir => dir.includes('.windsurf'))) {
-              const windsurfPath = path.join(projectPath, '.windsurf', 'workflows', file);
-              const windsurfContent = generateMarkdownCommand(content, scriptPath);
-              await fs.writeFile(windsurfPath, windsurfContent);
-            }
-
-            if (aiDirs.some(dir => dir.includes('.gemini'))) {
-              const geminiPath = path.join(projectPath, '.gemini', 'commands', `${commandName}.toml`);
-              const geminiContent = generateTomlCommand(content, scriptPath);
-              await fs.writeFile(geminiPath, geminiContent);
-            }
-          }
+${cmd.prompt}
+`;
+          await fs.writeFile(claudePath, claudeContent);
         }
-      } else {
-        await fs.writeFile(path.join(projectPath, '.specify', 'spec.md'), specContent);
-      }
 
-      // 复制脚本文件
-      if (await fs.pathExists(scriptsDir)) {
-        const userScriptsDir = path.join(projectPath, '.specify', 'scripts');
-        await fs.copy(scriptsDir, userScriptsDir);
+        // Cursor 格式 (Markdown)
+        if (aiDirs.some(dir => dir.includes('.cursor'))) {
+          const cursorPath = path.join(projectPath, '.cursor', 'prompts', `${cmd.name}.md`);
+          const cursorContent = `# ${cmd.description}
 
-        // 设置 bash 脚本执行权限
-        const bashDir = path.join(userScriptsDir, 'bash');
-        if (await fs.pathExists(bashDir)) {
-          const bashFiles = await fs.readdir(bashDir);
-          for (const file of bashFiles) {
-            if (file.endsWith('.sh')) {
-              const filePath = path.join(bashDir, file);
-              await fs.chmod(filePath, 0o755);
-            }
-          }
+${cmd.prompt}
+`;
+          await fs.writeFile(cursorPath, cursorContent);
+        }
+
+        // Gemini 格式 (TOML)
+        if (aiDirs.some(dir => dir.includes('.gemini'))) {
+          const geminiPath = path.join(projectPath, '.gemini', 'commands', `${cmd.name}.toml`);
+          const geminiContent = `description = "${cmd.description}"
+
+prompt = """
+${cmd.prompt}
+"""
+`;
+          await fs.writeFile(geminiPath, geminiContent);
+        }
+
+        // Windsurf 格式 (Markdown)
+        if (aiDirs.some(dir => dir.includes('.windsurf'))) {
+          const windsurfPath = path.join(projectPath, '.windsurf', 'workflows', `${cmd.name}.md`);
+          const windsurfContent = `# ${cmd.description}
+
+${cmd.prompt}
+`;
+          await fs.writeFile(windsurfPath, windsurfContent);
         }
       }
 
@@ -249,33 +338,38 @@ program
           execSync('git init', { cwd: projectPath, stdio: 'ignore' });
 
           // 创建 .gitignore
-          const gitignore = `# 临时文件
-*.tmp
-*.swp
-.DS_Store
-
-# 编辑器配置
-.vscode/
-.idea/
-
-# AI 缓存
-.ai-cache/
-
-# 节点模块
+          const gitignore = `# Dependencies
 node_modules/
 
-# 视频文件
+# Environment
+.env
+.env.local
+
+# AI Cache
+.ai-cache/
+
+# Build Output
+dist/
+*.log
+
+# Video Files
 *.mp4
 *.mov
 *.avi
 
-# 临时片段
-segments/*.mp4
+# Temporary
+.specify/projects/*/output/
+.specify/projects/*/temp/
+segments/
+
+# OS
+.DS_Store
+Thumbs.db
 `;
           await fs.writeFile(path.join(projectPath, '.gitignore'), gitignore);
 
           execSync('git add .', { cwd: projectPath, stdio: 'ignore' });
-          execSync('git commit -m "初始化视频项目"', { cwd: projectPath, stdio: 'ignore' });
+          execSync('git commit -m "chore: initialize movieflow project"', { cwd: projectPath, stdio: 'ignore' });
         } catch {
           console.log(chalk.yellow('\n提示: Git 初始化失败，但项目已创建成功'));
         }
@@ -284,33 +378,42 @@ segments/*.mp4
       spinner.succeed(chalk.green(`视频项目 "${name}" 创建成功！`));
 
       // 显示后续步骤
-      console.log('\n' + chalk.cyan('接下来:'));
-      console.log(chalk.gray('─────────────────────────────'));
+      console.log('\n' + chalk.cyan('━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+      console.log(chalk.cyan.bold('  下一步'));
+      console.log(chalk.cyan('━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
 
       if (!options.here) {
-        console.log(`  1. ${chalk.white(`cd ${name}`)} - 进入项目目录`);
+        console.log(`  1. ${chalk.white.bold(`cd ${name}`)}`);
+        console.log(chalk.dim('     进入项目目录\n'));
       }
 
       const aiName = {
         'claude': 'Claude Code',
         'cursor': 'Cursor',
-        'gemini': 'Gemini',
+        'gemini': 'Gemini CLI',
         'windsurf': 'Windsurf'
       }[options.ai] || 'AI 助手';
 
-      if (options.all) {
-        console.log(`  2. ${chalk.white('在任意 AI 助手中打开项目')}`);
+      if (options.all || options.ai === 'auto') {
+        console.log(`  2. ${chalk.white.bold('在支持的 AI 助手中打开项目')}`);
+        console.log(chalk.dim('     Claude Code / Cursor / Gemini / Windsurf\n'));
       } else {
-        console.log(`  2. ${chalk.white(`在 ${aiName} 中打开项目`)}`);
+        console.log(`  2. ${chalk.white.bold(`在 ${aiName} 中打开项目`)}\n`);
       }
-      console.log(`  3. 使用以下斜杠命令开始创作:`);
-      console.log(`     ${chalk.cyan('/video-script')} - 创建视频脚本`);
-      console.log(`     ${chalk.cyan('/video-character')} - 设计角色形象`);
-      console.log(`     ${chalk.cyan('/video-scene')} - 生成场景画面`);
-      console.log(`     ${chalk.cyan('/video-voice')} - 生成配音`);
-      console.log(`     ${chalk.cyan('/video-generate')} - 生成视频`);
 
-      console.log('\n' + chalk.dim('提示: 斜杠命令在 AI 助手内部使用，不是在终端中'));
+      console.log(`  3. ${chalk.white.bold('使用 Slash 命令开始创作:')}`);
+      console.log(`     ${chalk.cyan('┌─ /video-specify')}  ${chalk.dim('创建视频规范')}`);
+      console.log(`     ${chalk.cyan('├─ /video-plan')}     ${chalk.dim('制定技术计划')}`);
+      console.log(`     ${chalk.cyan('├─ /video-script')}   ${chalk.dim('生成视频脚本')}`);
+      console.log(`     ${chalk.cyan('├─ /video-validate')} ${chalk.dim('L0+L1 验证 (推荐)')}`);
+      console.log(`     ${chalk.cyan('├─ /video-preview')}  ${chalk.dim('L2 预览 (可选)')}`);
+      console.log(`     ${chalk.cyan('└─ /video-implement')}${chalk.dim(' 生成完整视频')}`);
+
+      console.log('\n' + chalk.yellow('💡 提示:'));
+      console.log(chalk.dim('   • Slash 命令在 AI 助手中使用，不是终端命令'));
+      console.log(chalk.dim('   • 使用 wireframe 风格快速验证分镜（仅3元）'));
+      console.log(chalk.dim('   • 满意后再使用 full 风格验证最终效果'));
+      console.log(chalk.dim('   • 运行 movieflow check 检查环境依赖\n'));
 
     } catch (error) {
       spinner.fail(chalk.red('项目初始化失败'));
@@ -324,166 +427,84 @@ program
   .command('check')
   .description('检查系统环境和依赖')
   .action(() => {
-    console.log(chalk.cyan('检查系统环境...\n'));
+    console.log(chalk.cyan.bold('\n🔍 检查系统环境\n'));
 
     const checks = [
-      { name: 'Node.js', command: 'node --version', installed: false },
-      { name: 'FFmpeg', command: 'ffmpeg -version', installed: false },
-      { name: 'Git', command: 'git --version', installed: false }
+      { name: 'Node.js', command: 'node --version', required: true },
+      { name: 'FFmpeg', command: 'ffmpeg -version', required: true },
+      { name: 'Git', command: 'git --version', required: false }
     ];
+
+    let allRequired = true;
 
     checks.forEach(check => {
       try {
-        execSync(check.command, { stdio: 'ignore' });
-        check.installed = true;
-        console.log(chalk.green('✓') + ` ${check.name} 已安装`);
+        const version = execSync(check.command, { encoding: 'utf-8', stdio: 'pipe' }).split('\n')[0];
+        console.log(chalk.green('  ✓ ') + chalk.white(check.name.padEnd(12)) + chalk.dim(version));
       } catch {
-        console.log(chalk.yellow('⚠') + ` ${check.name} 未安装`);
+        console.log(chalk.red('  ✗ ') + chalk.white(check.name.padEnd(12)) + chalk.yellow('未安装'));
+        if (check.required) allRequired = false;
       }
     });
 
-    const ffmpegCheck = checks.find(c => c.name === 'FFmpeg');
-    if (!ffmpegCheck?.installed) {
-      console.log('\n' + chalk.yellow('警告: FFmpeg 未安装，无法进行视频合成'));
-      console.log('请安装 FFmpeg: https://ffmpeg.org/download.html');
+    console.log('\n' + chalk.cyan.bold('🔑 环境变量检查\n'));
+
+    const envVars = [
+      { name: 'VOLCANO_ACCESS_KEY', required: true, desc: '火山引擎密钥（视频生成）' },
+      { name: 'VOLCANO_SECRET_KEY', required: true, desc: '火山引擎密钥（视频生成）' },
+      { name: 'UNIAPI_KEY', required: false, desc: 'UniAPI密钥（L1图像预览）' },
+      { name: 'YUNWU_API_KEY', required: false, desc: '云雾API密钥（L1图像预览）' },
+    ];
+
+    envVars.forEach(envVar => {
+      const value = process.env[envVar.name];
+      if (value) {
+        const masked = value.slice(0, 8) + '...';
+        console.log(chalk.green('  ✓ ') + chalk.white(envVar.name.padEnd(22)) + chalk.dim(`(${masked})`));
+      } else {
+        const mark = envVar.required ? chalk.red('  ✗ ') : chalk.yellow('  ○ ');
+        const status = envVar.required ? chalk.red('未设置') : chalk.yellow('未设置（可选）');
+        console.log(mark + chalk.white(envVar.name.padEnd(22)) + status);
+        console.log(chalk.dim(`      ${envVar.desc}`));
+      }
+    });
+
+    if (allRequired && process.env.VOLCANO_ACCESS_KEY && process.env.VOLCANO_SECRET_KEY) {
+      console.log('\n' + chalk.green.bold('✓ 环境检查通过！\n'));
     } else {
-      console.log('\n' + chalk.green('环境检查通过！'));
+      console.log('\n' + chalk.yellow.bold('⚠ 需要完成配置\n'));
+      if (!allRequired) {
+        console.log(chalk.dim('安装指南:'));
+        console.log(chalk.dim('  • FFmpeg: https://ffmpeg.org/download.html'));
+        console.log(chalk.dim('  • Node.js: https://nodejs.org/\n'));
+      }
+      if (!process.env.VOLCANO_ACCESS_KEY || !process.env.VOLCANO_SECRET_KEY) {
+        console.log(chalk.dim('配置环境变量:'));
+        console.log(chalk.dim('  1. 复制 .env.example 为 .env'));
+        console.log(chalk.dim('  2. 在 .env 中填入你的 API 密钥'));
+        console.log(chalk.dim('  3. 参考 README.md 获取密钥\n'));
+      }
     }
   });
-
-// 添加脚本导出相关命令
-program.addCommand(scriptExportCommand);
-program.addCommand(generateScriptCommand);
-
-// 添加验证相关命令
-program.addCommand(validateCommand);
-program.addCommand(previewCommand);
 
 // 自定义帮助信息
 program.on('--help', () => {
   console.log('');
-  console.log(chalk.yellow('使用示例:'));
-  console.log('');
-  console.log('  $ movieflow init my-video');
-  console.log('  $ movieflow init my-video --ai cursor');
-  console.log('  $ movieflow init --here');
-  console.log('  $ movieflow check');
-  console.log('  $ movieflow validate tang-monk-dating');
-  console.log('  $ movieflow preview tang-monk-dating --scene 3');
-  console.log('  $ movieflow script-export --format markdown');
-  console.log('  $ movieflow generate-script');
-  console.log('');
-  console.log(chalk.gray('更多信息: https://github.com/wordflowlab/movieflow'));
+  console.log(chalk.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+  console.log(chalk.cyan.bold('  使用示例'));
+  console.log(chalk.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
+  console.log(chalk.white('  基础用法:'));
+  console.log(chalk.dim('    $ movieflow init my-video'));
+  console.log(chalk.dim('    $ movieflow init my-video --ai claude'));
+  console.log(chalk.dim('    $ movieflow init --here\n'));
+  console.log(chalk.white('  环境检查:'));
+  console.log(chalk.dim('    $ movieflow check\n'));
+  console.log(chalk.yellow('  💡 提示:'));
+  console.log(chalk.dim('     业务功能通过 AI 助手的 Slash 命令执行'));
+  console.log(chalk.dim('     运行 movieflow init 后查看可用命令\n'));
+  console.log(chalk.dim('  文档: https://github.com/wordflowlab/movieflow'));
+  console.log(chalk.dim('  基于: Spec-Kit (https://github.com/github/spec-kit)\n'));
 });
-
-// generate 命令 - 生成60秒视频
-program
-  .command('generate')
-  .argument('<project>', '项目名称')
-  .option('--resume <session>', '恢复之前的会话')
-  .option('--template <type>', '使用模板: tang-monk | custom', 'tang-monk')
-  .option('--version <type>', 'API 版本: v30 | v30_1080p | v30_pro', 'v30_pro')
-  .option('--aspect <ratio>', '宽高比: 16:9 | 9:16 | 1:1 | 4:3 | 3:4', '9:16')
-  .option('--platform <type>', '平台: douyin | wechat | kuaishou', 'douyin')
-  .option('--no-audio', '禁用音频生成')
-  .option('--no-subtitle', '禁用字幕生成')
-  .option('--env <path>', '环境变量文件路径', '.env')
-  .description('生成60秒短视频')
-  .action(async (project, options) => {
-    // 加载环境变量
-    dotenv.config({ path: options.env });
-
-    // 检查 API 配置
-    if (!process.env.VOLCANO_ACCESS_KEY || !process.env.VOLCANO_SECRET_KEY) {
-      console.error(chalk.red('错误: 未找到火山引擎 API 密钥'));
-      console.error(chalk.yellow('请在 .env 文件中设置:'));
-      console.error('  VOLCANO_ACCESS_KEY=your_access_key');
-      console.error('  VOLCANO_SECRET_KEY=your_secret_key');
-      process.exit(1);
-    }
-
-    const platformDetector = PlatformDetector.getInstance();
-    const adapter = platformDetector.getAdapter();
-
-    try {
-      const generator = new VideoGenerator({
-        accessKey: process.env.VOLCANO_ACCESS_KEY,
-        secretKey: process.env.VOLCANO_SECRET_KEY,
-        outputDir: './videos',
-        tempDir: './temp',
-        maxConcurrency: 3,
-        aspectRatio: options.aspect as any,
-        platform: options.platform as 'douyin' | 'wechat' | 'kuaishou',
-        apiVersion: options.version as any
-      });
-
-      const videoPath = await generator.generateVideo({
-        projectName: project,
-        useTemplate: options.template as any,
-        enableAudio: options.audio !== false,
-        enableSubtitle: options.subtitle !== false,
-        resumeFromSession: options.resume
-      });
-
-      adapter.outputMessage(`视频生成完成: ${videoPath}`, 'success');
-    } catch (error: any) {
-      adapter.outputMessage(`生成失败: ${error.message}`, 'error');
-      process.exit(1);
-    }
-  });
-
-// sessions 命令 - 管理会话
-program
-  .command('sessions')
-  .option('--list', '列出所有会话')
-  .option('--resume <id>', '恢复指定会话')
-  .option('--clean', '清理过期会话')
-  .option('--report <id>', '显示会话报告')
-  .description('管理视频生成会话')
-  .action(async (options) => {
-    const stateManager = new TaskStateManager('.movieflow-state');
-
-    if (options.list) {
-      const sessions = await stateManager.listSessions();
-      if (sessions.length === 0) {
-        console.log(chalk.yellow('没有找到任何会话'));
-      } else {
-        console.log(chalk.cyan('\n📋 会话列表:\n'));
-        sessions.forEach(session => {
-          const completed = session.segments.filter(s => s.status === 'completed').length;
-          const status = session.completed ? '✅ 完成' : '🔄 进行中';
-          console.log(`${status} ${session.id}`);
-          console.log(`  项目: ${session.projectName}`);
-          console.log(`  进度: ${completed}/${session.totalSegments}`);
-          console.log(`  更新时间: ${new Date(session.updateTime).toLocaleString()}`);
-          console.log('');
-        });
-      }
-    } else if (options.resume) {
-      const session = await stateManager.resumeSession(options.resume);
-      if (session) {
-        console.log(chalk.green(`✅ 恢复会话: ${session.projectName}`));
-        console.log(stateManager.generateReport(session));
-      } else {
-        console.log(chalk.red('未找到指定会话'));
-      }
-    } else if (options.clean) {
-      const cleaned = await stateManager.cleanExpiredSessions();
-      console.log(chalk.green(`✅ 清理了 ${cleaned} 个过期会话`));
-    } else if (options.report) {
-      const session = await stateManager.resumeSession(options.report);
-      if (session) {
-        console.log(stateManager.generateReport(session));
-      } else {
-        console.log(chalk.red('未找到指定会话'));
-      }
-    } else {
-      program.outputHelp();
-    }
-
-    stateManager.destroy();
-  });
-
 
 // 解析命令行参数
 program.parse(process.argv);

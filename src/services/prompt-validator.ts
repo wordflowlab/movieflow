@@ -211,6 +211,79 @@ export class PromptValidator {
 
     return videoPrompt;
   }
+
+  /**
+   * 根据风格类型转换提示词
+   * @param prompt 原始提示词
+   * @param style 风格类型
+   */
+  convertToStyle(prompt: string, style: 'wireframe' | 'sketch' | 'full' | 'lineart'): string {
+    const isEnglish = /[a-zA-Z]/.test(prompt) && prompt.split('').filter(c => /[a-zA-Z]/.test(c)).length > prompt.length * 0.5;
+
+    switch (style) {
+      case 'wireframe':
+        // 线框图：纯黑白线条，无阴影，适合快速验证构图
+        if (isEnglish) {
+          return `${prompt}, black and white wireframe sketch, clean line art, no shading, no color, simple lines, storyboard style, quick sketch, pencil draft`;
+        } else {
+          return `${prompt}，黑白线稿，简洁线条，无阴影，无上色，分镜草图风格，铅笔素描，快速草图`;
+        }
+
+      case 'sketch':
+        // 素描：带轻微阴影的铅笔画
+        if (isEnglish) {
+          return `${prompt}, detailed pencil sketch, light shading, graphite drawing, artistic sketch style, black and white, hand-drawn feel`;
+        } else {
+          return `${prompt}，详细铅笔素描，轻微阴影，石墨画风格，艺术素描，黑白画面，手绘质感`;
+        }
+
+      case 'lineart':
+        // 线稿：干净的黑白线条艺术，比wireframe更精致
+        if (isEnglish) {
+          return `${prompt}, clean line art, manga style linework, black ink on white, no color, clear outlines, professional comic book style`;
+        } else {
+          return `${prompt}，干净线稿，漫画风格线条，黑白分明，无上色，清晰轮廓，专业漫画风格`;
+        }
+
+      case 'full':
+      default:
+        // 完整渲染：保持原提示词，确保高质量
+        if (isEnglish) {
+          return `${prompt}, high quality, detailed, vibrant colors, professional rendering, rich textures`;
+        } else {
+          return `${prompt}，高质量，细节丰富，色彩鲜艳，专业渲染，质感丰富`;
+        }
+    }
+  }
+
+  /**
+   * 获取风格的估算成本（相对于full的百分比）
+   */
+  getStyleCostFactor(style: 'wireframe' | 'sketch' | 'full' | 'lineart'): number {
+    switch (style) {
+      case 'wireframe':
+        return 0.5;  // 线框图成本约为完整渲染的50%
+      case 'sketch':
+      case 'lineart':
+        return 0.7;  // 素描/线稿约为70%
+      case 'full':
+      default:
+        return 1.0;  // 完整渲染为基准
+    }
+  }
+
+  /**
+   * 获取风格描述
+   */
+  getStyleDescription(style: 'wireframe' | 'sketch' | 'full' | 'lineart'): string {
+    const descriptions = {
+      wireframe: '黑白线框图 - 快速验证分镜和构图',
+      sketch: '铅笔素描 - 验证构图和基本光影',
+      lineart: '精细线稿 - 验证线条和细节',
+      full: '完整渲染 - 验证最终视觉效果'
+    };
+    return descriptions[style];
+  }
 }
 
 export default PromptValidator;

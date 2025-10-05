@@ -72,3 +72,5 @@ config.local.json
 # Cache
 .cache/
 .parcel-cache/
+.gemini-clipboard/
+# other/
