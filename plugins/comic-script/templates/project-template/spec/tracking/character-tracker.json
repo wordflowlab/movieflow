@@ -1,0 +1,6 @@
+{
+  "$schema": "../../../spec/schemas/character-tracker.schema.json",
+  "project": "",
+  "lastUpdated": "",
+  "characters": []
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "../../spec/schemas/project-config.schema.json",
+  "project": {
+    "name": "",
+    "description": "",
+    "createdAt": "",
+    "lastModified": ""
+  },
+  "source": {
+    "files": [
+      {
+        "path": "source/",
+        "encoding": "utf-8",
+        "type": "txt"
+      }
+    ]
+  },
+  "settings": {
+    "targetDuration": 60,
+    "sceneStrategy": "flexible-scene-grouping",
+    "aspectRatio": "9:16",
+    "frameRate": 24,
+    "platform": "抖音/快手"
+  },
+  "metadata": {
+    "genre": "",
+    "tags": [],
+    "author": "",
+    "copyright": ""
+  }
+}

@@ -1,0 +1,193 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://movieflow.ai/schemas/comic-script/beat-sheet.json",
+  "title": "Story Beat Sheet",
+  "description": "全局故事节拍表 - 基于Save the Cat方法论的故事结构分析",
+  "type": "object",
+  "required": ["novel", "totalWordCount", "analysis", "episodePlanning"],
+  "properties": {
+    "novel": {
+      "type": "string",
+      "description": "小说名称"
+    },
+    "totalWordCount": {
+      "type": "integer",
+      "description": "小说总字数"
+    },
+    "analyzedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "分析时间"
+    },
+    "analysis": {
+      "type": "object",
+      "description": "故事结构分析",
+      "required": ["totalChapters", "keyBeats"],
+      "properties": {
+        "totalChapters": {
+          "type": "integer",
+          "description": "总章节数"
+        },
+        "keyBeats": {
+          "type": "array",
+          "description": "关键故事节拍",
+          "items": {
+            "type": "object",
+            "required": ["beat", "chapter", "description"],
+            "properties": {
+              "beat": {
+                "type": "string",
+                "enum": [
+                  "Opening Image",
+                  "Theme Stated",
+                  "Setup",
+                  "Catalyst",
+                  "Debate",
+                  "Break into Two",
+                  "B Story",
+                  "Fun and Games",
+                  "Midpoint",
+                  "Bad Guys Close In",
+                  "All Is Lost",
+                  "Dark Night of the Soul",
+                  "Break into Three",
+                  "Finale",
+                  "Final Image"
+                ],
+                "description": "故事节拍类型（Save the Cat 15拍）"
+              },
+              "chapter": {
+                "type": "integer",
+                "description": "所在章节"
+              },
+              "paragraph": {
+                "type": "string",
+                "description": "段落范围，如'1-5'或'批阅材料段落'"
+              },
+              "description": {
+                "type": "string",
+                "description": "节拍内容描述"
+              },
+              "dramaticFunction": {
+                "type": "string",
+                "description": "戏剧功能说明"
+              },
+              "estimatedDuration": {
+                "type": "integer",
+                "description": "预估视频时长（秒）"
+              }
+            }
+          }
+        },
+        "storyArcs": {
+          "type": "array",
+          "description": "故事弧线（多条线索）",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "弧线名称，如'主线：仕途之路'"
+              },
+              "type": {
+                "type": "string",
+                "enum": ["main", "subplot", "character"],
+                "description": "弧线类型"
+              },
+              "startChapter": {
+                "type": "integer"
+              },
+              "endChapter": {
+                "type": "integer"
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "episodePlanning": {
+      "type": "object",
+      "description": "Episode规划方案",
+      "required": ["strategy", "targetDuration", "estimatedEpisodes", "episodes"],
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["flexible-scene-grouping", "fixed-duration", "chapter-based"],
+          "description": "Episode划分策略"
+        },
+        "targetDuration": {
+          "type": "integer",
+          "description": "目标时长（秒），默认60秒",
+          "default": 60
+        },
+        "estimatedEpisodes": {
+          "type": "integer",
+          "description": "预估Episode总数"
+        },
+        "episodes": {
+          "type": "array",
+          "description": "Episode列表",
+          "items": {
+            "type": "object",
+            "required": ["id", "title", "sourceSpan", "dramaticFunction"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^EP\\d{3}$",
+                "description": "Episode ID，如EP001"
+              },
+              "title": {
+                "type": "string",
+                "description": "Episode标题"
+              },
+              "sourceSpan": {
+                "type": "object",
+                "description": "源文本范围",
+                "required": ["type", "chapters"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["single-chapter", "partial-chapter", "cross-chapter"],
+                    "description": "跨越类型"
+                  },
+                  "chapters": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "涉及的章节"
+                  },
+                  "startParagraph": {
+                    "type": ["integer", "string"],
+                    "description": "起始段落"
+                  },
+                  "endParagraph": {
+                    "type": ["integer", "string"],
+                    "description": "结束段落"
+                  }
+                }
+              },
+              "sceneEstimate": {
+                "type": "integer",
+                "description": "预估场景数量",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "dramaticFunction": {
+                "type": "string",
+                "description": "戏剧功能，如'Setup + Catalyst'"
+              },
+              "estimatedDuration": {
+                "type": "integer",
+                "description": "预估时长（秒）"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

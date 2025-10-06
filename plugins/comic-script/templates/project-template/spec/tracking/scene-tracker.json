@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../spec/schemas/scene-tracker.schema.json",
+  "project": "",
+  "lastUpdated": "",
+  "currentState": {
+    "currentEpisode": null,
+    "currentScene": null,
+    "location": null,
+    "timepoint": null
+  },
+  "scenes": [],
+  "globalElements": {
+    "recurringMotifs": [],
+    "visualThemes": [],
+    "audioThemes": []
+  }
+}

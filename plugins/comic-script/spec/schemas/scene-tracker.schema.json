@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://movieflow.ai/schemas/comic-script/scene-tracker.json",
+  "title": "Scene Tracker",
+  "description": "场景追踪系统 - 跨Episode追踪所有场景的状态和连贯性",
+  "type": "object",
+  "required": ["project", "scenes"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "项目名称"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "currentState": {
+      "type": "object",
+      "description": "当前状态",
+      "properties": {
+        "currentEpisode": {
+          "type": "string",
+          "description": "当前Episode ID"
+        },
+        "currentScene": {
+          "type": "string",
+          "description": "当前场景ID"
+        },
+        "location": {
+          "type": "string",
+          "description": "当前地点"
+        },
+        "timepoint": {
+          "type": "string",
+          "description": "故事时间点"
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "description": "所有场景列表",
+      "items": {
+        "type": "object",
+        "required": ["id", "episodeId", "name", "status"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^S\\d{3}$",
+            "description": "场景ID，如S001"
+          },
+          "episodeId": {
+            "type": "string",
+            "description": "所属Episode ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "场景名称"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in-progress", "completed"],
+            "description": "制作状态"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "时长（秒）"
+          },
+          "visualPotential": {
+            "type": "string",
+            "enum": ["high", "medium", "low"],
+            "description": "视觉化潜力"
+          },
+          "shotCount": {
+            "type": "integer",
+            "description": "镜头数量"
+          },
+          "dramaticFunction": {
+            "type": "string",
+            "description": "戏剧功能"
+          },
+          "dependencies": {
+            "type": "object",
+            "properties": {
+              "previousScene": {
+                "type": ["string", "null"],
+                "description": "前一场景ID"
+              },
+              "nextScene": {
+                "type": ["string", "null"],
+                "description": "后一场景ID"
+              }
+            }
+          },
+          "continuity": {
+            "type": "object",
+            "description": "连贯性信息",
+            "properties": {
+              "characters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": ["protagonist", "supporting", "background"]
+                    },
+                    "emotionalState": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "location": {
+                "type": "string",
+                "description": "地点"
+              },
+              "timeOfDay": {
+                "type": "string",
+                "description": "时间段"
+              },
+              "weather": {
+                "type": "string",
+                "description": "天气"
+              },
+              "emotionalTone": {
+                "type": "string",
+                "description": "情绪基调"
+              }
+            }
+          },
+          "visualStyle": {
+            "type": "object",
+            "description": "视觉风格",
+            "properties": {
+              "colorTone": {
+                "type": "string",
+                "description": "色调"
+              },
+              "lighting": {
+                "type": "string",
+                "description": "光照"
+              }
+            }
+          }
+        }
+      }
+    },
+    "globalElements": {
+      "type": "object",
+      "description": "全局元素",
+      "properties": {
+        "recurringMotifs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "反复出现的元素"
+        },
+        "visualThemes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "视觉主题"
+        },
+        "audioThemes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "音频主题"
+        }
+      }
+    }
+  }
+}

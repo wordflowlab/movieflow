@@ -1,0 +1,87 @@
+{
+  "shotTemplate": {
+    "version": "1.0",
+    "description": "镜头设计模板 - 符合 MovieFlow 标准的镜头参数",
+    "schema": {
+      "shotNumber": "string",
+      "timeCode": "string (MM:SS-MM:SS)",
+      "duration": "number (seconds)",
+      "shotSize": "远景 | 全景 | 中景 | 近景 | 特写",
+      "cameraMove": "固定 | 推镜 | 拉镜 | 摇镜 | 移镜 | 跟镜 | 升降",
+      "angle": "平视 | 俯视 | 仰视 | 鸟瞰 | 倾斜",
+      "composition": {
+        "method": "三分法 | 中心构图 | 对角线 | 框架构图 | 黄金分割",
+        "foreground": "string",
+        "midground": "string",
+        "background": "string"
+      },
+      "description": "string",
+      "lighting": {
+        "type": "natural | dramatic | soft | backlight",
+        "direction": "top | side | front | back",
+        "mood": "string"
+      },
+      "audio": {
+        "dialogue": "string",
+        "sfx": ["string"],
+        "bgm": "string"
+      },
+      "transition": "淡入 | 淡出 | 硬切 | 溶解 | 擦除 | 推拉",
+      "keyframes": [
+        {
+          "frame": "number",
+          "description": "string"
+        }
+      ],
+      "notes": "string"
+    },
+    "example": {
+      "shotNumber": "001",
+      "timeCode": "00:00-00:03",
+      "duration": 3,
+      "shotSize": "中景",
+      "cameraMove": "固定",
+      "angle": "平视",
+      "composition": {
+        "method": "三分法",
+        "foreground": "飘落的落叶",
+        "midground": "萧炎站在大堂中央,握紧拳头",
+        "background": "萧家府邸内景,昏暗的光线"
+      },
+      "description": "画面层次：前景-缓慢飘落的枯黄落叶,中景-少年萧炎站立,低着头但拳头紧握,背景-破败的萧家府邸,光线昏暗压抑。整体氛围沉重。",
+      "lighting": {
+        "type": "dramatic",
+        "direction": "side",
+        "mood": "压抑、沉重"
+      },
+      "audio": {
+        "dialogue": "",
+        "sfx": ["风声", "落叶声"],
+        "bgm": "低沉的背景音乐"
+      },
+      "transition": "淡入",
+      "keyframes": [
+        {
+          "frame": 1,
+          "description": "画面从黑场淡入"
+        },
+        {
+          "frame": 60,
+          "description": "落叶飘落到地面"
+        }
+      ],
+      "notes": "开场镜头,营造氛围为主"
+    },
+    "movieflowStandard": {
+      "aspectRatio": "9:16",
+      "resolution": "1080x1920",
+      "frameRate": 24,
+      "segmentDuration": 10,
+      "layerStructure": {
+        "foreground": "20%",
+        "midground": "60%",
+        "background": "20%"
+      }
+    }
+  }
+}

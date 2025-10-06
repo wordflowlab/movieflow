@@ -73,4 +73,6 @@ config.local.json
 .cache/
 .parcel-cache/
 .gemini-clipboard/
-# other/
+other/
+.gemini/
+.windsurf/

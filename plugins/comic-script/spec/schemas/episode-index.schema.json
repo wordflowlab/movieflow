@@ -1,0 +1,213 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://movieflow.ai/schemas/comic-script/episode-index.json",
+  "title": "Episode Index",
+  "description": "Episode索引 - 管理所有Episode的制作状态和元数据",
+  "type": "object",
+  "required": ["project", "episodes"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "项目名称"
+    },
+    "indexedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "索引创建时间"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "最后更新时间"
+    },
+    "sourceFiles": {
+      "type": "array",
+      "description": "源文件列表",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "文件路径"
+          },
+          "encoding": {
+            "type": "string",
+            "default": "utf-8",
+            "description": "文件编码"
+          },
+          "totalLines": {
+            "type": "integer",
+            "description": "总行数"
+          },
+          "totalWordCount": {
+            "type": "integer",
+            "description": "总字数"
+          },
+          "chapterRange": {
+            "type": "array",
+            "items": {
+              "type": "integer"
+            },
+            "minItems": 2,
+            "maxItems": 2,
+            "description": "章节范围[起始, 结束]"
+          }
+        }
+      }
+    },
+    "episodes": {
+      "type": "array",
+      "description": "Episode列表",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status", "sourceLocation"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^EP\\d{3}$",
+            "description": "Episode ID，如EP001"
+          },
+          "title": {
+            "type": "string",
+            "description": "Episode标题"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["planned", "in-progress", "completed", "reviewed"],
+            "description": "制作状态"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "实际时长（秒）"
+          },
+          "sceneCount": {
+            "type": "integer",
+            "description": "场景数量"
+          },
+          "sourceLocation": {
+            "type": "object",
+            "description": "源文本定位",
+            "required": ["file"],
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "源文件路径"
+              },
+              "chapters": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "description": "涉及的章节号"
+              },
+              "startLine": {
+                "type": "integer",
+                "description": "起始行号"
+              },
+              "endLine": {
+                "type": "integer",
+                "description": "结束行号"
+              },
+              "textPreview": {
+                "type": "string",
+                "maxLength": 200,
+                "description": "文本预览（前200字）"
+              }
+            }
+          },
+          "dramaticArc": {
+            "type": "object",
+            "description": "戏剧弧线",
+            "properties": {
+              "setup": {
+                "type": "string",
+                "description": "开始"
+              },
+              "confrontation": {
+                "type": "string",
+                "description": "冲突"
+              },
+              "resolution": {
+                "type": "string",
+                "description": "结局"
+              }
+            }
+          },
+          "dependencies": {
+            "type": "object",
+            "description": "依赖关系",
+            "properties": {
+              "previousEpisode": {
+                "type": ["string", "null"],
+                "description": "前一个Episode ID"
+              },
+              "nextEpisode": {
+                "type": ["string", "null"],
+                "description": "后一个Episode ID"
+              }
+            }
+          },
+          "continuity": {
+            "type": "object",
+            "description": "连贯性信息",
+            "properties": {
+              "characters": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "出场角色"
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "出现地点"
+              },
+              "timeOfDay": {
+                "type": "string",
+                "description": "时间段"
+              },
+              "emotionalTone": {
+                "type": "string",
+                "description": "情绪基调"
+              }
+            }
+          },
+          "processedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "处理时间"
+          },
+          "outputPath": {
+            "type": "string",
+            "description": "输出路径"
+          }
+        }
+      }
+    },
+    "statistics": {
+      "type": "object",
+      "description": "统计信息",
+      "properties": {
+        "totalEpisodes": {
+          "type": "integer",
+          "description": "总Episode数"
+        },
+        "completedEpisodes": {
+          "type": "integer",
+          "description": "已完成数量"
+        },
+        "totalDuration": {
+          "type": "integer",
+          "description": "总时长（秒）"
+        },
+        "estimatedTotalDuration": {
+          "type": "integer",
+          "description": "预估总时长（秒）"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "../../../spec/schemas/visual-continuity.schema.json",
+  "project": "",
+  "lastUpdated": "",
+  "globalStyle": {
+    "colorGrading": "",
+    "colorPalette": [],
+    "lighting": "",
+    "atmosphere": "",
+    "artStyle": "",
+    "cameraStyle": ""
+  },
+  "episodeStyles": [],
+  "locations": [],
+  "visualMotifs": [],
+  "continuityNotes": []
+}

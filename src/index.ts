@@ -32,6 +32,10 @@ export type { VolcanoTTSConfig, TTSRequest, TTSResponse } from './services/volca
 export { AliyunTTSService } from './services/aliyun-tts-service';
 export type { AliyunTTSConfig } from './services/aliyun-tts-service';
 
+// 插件系统
+export { PluginManager } from './plugins/manager';
+export type { PluginConfig, PluginCommand, PluginExpert } from './plugins/manager';
+
 // 版本信息
 import { VERSION } from './utils/version';
 export { VERSION };

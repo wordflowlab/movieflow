@@ -1,0 +1,82 @@
+name: movieflow-comic-script
+version: 0.1.0
+description: 小说转漫画脚本插件 - 基于Story Beats的专业影视改编系统
+type: workflow
+commands:
+  - id: comic-init
+    file: commands/comic-init.md
+    description: 初始化项目，创建规范驱动的目录结构
+  - id: comic-analyze
+    file: commands/comic-analyze.md
+    description: 全局分析小说，生成Story Beats和Episode规划
+  - id: comic-episode
+    file: commands/comic-episode.md
+    description: 制作Episode（增量式，基于戏剧性划分场景）
+  - id: comic-status
+    file: commands/comic-status.md
+    description: 查看项目状态和制作进度
+  - id: comic-export-series
+    file: commands/comic-export-series.md
+    description: 导出Episode系列合集
+experts:
+  - id: comic-director
+    file: experts/comic-director.md
+    title: 漫画导演专家
+    description: 专业的视觉叙事和漫画视频制作指导
+  - id: storyboard-artist
+    file: experts/storyboard-artist.md
+    title: 分镜师专家
+    description: 分镜设计和镜头语言专家
+dependencies:
+  core: ">=0.3.0"
+installation:
+  message: |
+    ✅ Comic Script Plugin 安装成功！
+
+    🎬 专业影视改编系统 - Story Beats + Spec-Driven
+
+    📖 工作流程：
+    /comic-init → /comic-analyze → /comic-episode → /video-generate
+
+    🎯 核心命令：
+    - /comic-init           - 初始化项目
+    - /comic-analyze        - 全局分析（Story Beats + Episode规划）
+    - /comic-episode EP001  - 制作Episode（增量式）
+    - /comic-status         - 查看进度
+    - /comic-export-series  - 导出系列合集
+
+    📁 项目结构：
+    projects/[小说名]/
+    ├── spec/                      # Spec驱动核心
+    │   ├── beat-sheet.json        # 故事节拍表
+    │   ├── episode-index.json     # Episode索引
+    │   └── tracking/              # 状态追踪
+    │       ├── character-tracker.json
+    │       ├── scene-tracker.json
+    │       └── visual-continuity.json
+    ├── source/                    # 源文件
+    ├── episodes/                  # 按Episode组织
+    │   └── EP001-[标题]/
+    │       ├── scenes/            # 场景拆解
+    │       ├── storyboards/       # 分镜脚本
+    │       └── output/
+    │           └── EP001-spec.json  # MovieFlow输入
+
+    🎯 核心特性：
+    ✅ Story Beats分析（Save the Cat 15拍）
+    ✅ 灵活场景组合（1-8场景，非固定6个）
+    ✅ 跨Episode状态追踪（角色/情节/视觉连贯）
+    ✅ 增量处理（无需加载整本小说）
+    ✅ Spec驱动（符合MovieFlow SDVC理念）
+
+    💡 快速开始：
+    1. /comic-init 官运 ~/Downloads/官运.txt
+    2. /comic-analyze
+    3. /comic-episode EP001
+    4. /video-generate --spec episodes/EP001-.../output/EP001-spec.json
+
+    🧑‍🎨 专家模式：
+    - /expert comic-director     - 漫画导演专家
+    - /expert storyboard-artist  - 分镜师专家
+
+    📚 了解更多：查看 plugins/comic-script/README.md

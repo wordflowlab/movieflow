@@ -1,0 +1,90 @@
+{
+  "sceneTemplate": {
+    "version": "1.0",
+    "description": "场景设计模板 - 用于标准化场景结构",
+    "schema": {
+      "sceneId": "number",
+      "sceneName": "string",
+      "duration": "number (seconds)",
+      "type": "action | dialogue | atmosphere | flashback",
+      "location": {
+        "place": "string",
+        "time": "day | night | dusk | dawn",
+        "weather": "sunny | cloudy | rainy | snowy | etc",
+        "atmosphere": "string"
+      },
+      "characters": [
+        {
+          "name": "string",
+          "role": "主角 | 配角 | 群演",
+          "emotion": "string",
+          "action": "string"
+        }
+      ],
+      "plot": {
+        "summary": "string",
+        "conflict": "string",
+        "resolution": "string"
+      },
+      "visual": {
+        "style": "realistic | cartoon | anime | watercolor",
+        "colorTone": "warm | cool | neutral",
+        "lighting": "natural | dramatic | soft",
+        "visualPotential": "high | medium | low"
+      },
+      "shots": {
+        "suggestedCount": "number",
+        "distribution": {
+          "longShot": "number",
+          "mediumShot": "number",
+          "closeUp": "number"
+        }
+      }
+    },
+    "example": {
+      "sceneId": 1,
+      "sceneName": "退婚开场",
+      "duration": 10,
+      "type": "dialogue",
+      "location": {
+        "place": "萧家府邸大堂",
+        "time": "day",
+        "weather": "cloudy",
+        "atmosphere": "压抑、紧张"
+      },
+      "characters": [
+        {
+          "name": "萧炎",
+          "role": "主角",
+          "emotion": "愤怒、隐忍",
+          "action": "握紧拳头"
+        },
+        {
+          "name": "纳兰嫣然",
+          "role": "配角",
+          "emotion": "冷漠、傲慢",
+          "action": "递出退婚书"
+        }
+      ],
+      "plot": {
+        "summary": "纳兰嫣然当众退婚，萧炎受辱",
+        "conflict": "尊严受损 vs 实力不足",
+        "resolution": "萧炎立下三年之约"
+      },
+      "visual": {
+        "style": "anime",
+        "colorTone": "cool",
+        "lighting": "dramatic",
+        "visualPotential": "high"
+      },
+      "shots": {
+        "suggestedCount": 5,
+        "distribution": {
+          "longShot": 1,
+          "mediumShot": 2,
+          "closeUp": 2
+        }
+      }
+    }
+  }
+}

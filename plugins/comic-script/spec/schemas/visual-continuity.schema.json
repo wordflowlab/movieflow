@@ -1,0 +1,204 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://movieflow.ai/schemas/comic-script/visual-continuity.json",
+  "title": "Visual Continuity Tracker",
+  "description": "视觉连贯性追踪 - 跨Episode追踪视觉风格和一致性",
+  "type": "object",
+  "required": ["project", "globalStyle"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "项目名称"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "最后更新时间"
+    },
+    "globalStyle": {
+      "type": "object",
+      "description": "全局视觉风格",
+      "properties": {
+        "colorGrading": {
+          "type": "string",
+          "description": "色调风格"
+        },
+        "colorPalette": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "主色板"
+        },
+        "lighting": {
+          "type": "string",
+          "description": "光照风格"
+        },
+        "atmosphere": {
+          "type": "string",
+          "description": "氛围"
+        },
+        "artStyle": {
+          "type": "string",
+          "description": "美术风格"
+        },
+        "cameraStyle": {
+          "type": "string",
+          "description": "镜头风格"
+        }
+      }
+    },
+    "episodeStyles": {
+      "type": "array",
+      "description": "Episode级别的视觉风格",
+      "items": {
+        "type": "object",
+        "required": ["episodeId"],
+        "properties": {
+          "episodeId": {
+            "type": "string",
+            "description": "Episode ID"
+          },
+          "colorGrading": {
+            "type": "string",
+            "description": "色调"
+          },
+          "lighting": {
+            "type": "string",
+            "description": "光照"
+          },
+          "weather": {
+            "type": "string",
+            "description": "天气"
+          },
+          "timeOfDay": {
+            "type": "string",
+            "description": "时间段"
+          },
+          "emotionalTone": {
+            "type": "string",
+            "description": "情绪基调"
+          },
+          "keyVisualElements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "关键视觉元素"
+          },
+          "transitionFrom": {
+            "type": "object",
+            "description": "从上一Episode的转场",
+            "properties": {
+              "previousEpisodeId": {
+                "type": "string"
+              },
+              "transitionType": {
+                "type": "string",
+                "enum": ["smooth", "contrast", "continuation"]
+              },
+              "visualLink": {
+                "type": "string",
+                "description": "视觉连接点"
+              }
+            }
+          }
+        }
+      }
+    },
+    "locations": {
+      "type": "array",
+      "description": "地点视觉规范",
+      "items": {
+        "type": "object",
+        "required": ["name", "visualDescription"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "地点名称"
+          },
+          "visualDescription": {
+            "type": "string",
+            "description": "视觉描述"
+          },
+          "colorScheme": {
+            "type": "string",
+            "description": "配色方案"
+          },
+          "lighting": {
+            "type": "string",
+            "description": "光照特点"
+          },
+          "keyProps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "关键道具"
+          },
+          "firstAppearance": {
+            "type": "string",
+            "description": "首次出现的Episode"
+          },
+          "appearances": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "出现的所有Episode"
+          }
+        }
+      }
+    },
+    "visualMotifs": {
+      "type": "array",
+      "description": "视觉母题",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "母题名称"
+          },
+          "description": {
+            "type": "string",
+            "description": "描述"
+          },
+          "symbolism": {
+            "type": "string",
+            "description": "象征意义"
+          },
+          "appearances": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "出现的Episodes"
+          }
+        }
+      }
+    },
+    "continuityNotes": {
+      "type": "array",
+      "description": "连贯性注意事项",
+      "items": {
+        "type": "object",
+        "properties": {
+          "episode": {
+            "type": "string",
+            "description": "相关Episode"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["warning", "suggestion", "constraint"],
+            "description": "类型"
+          },
+          "note": {
+            "type": "string",
+            "description": "内容"
+          }
+        }
+      }
+    }
+  }
+}

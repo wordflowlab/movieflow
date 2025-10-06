@@ -1,0 +1,142 @@
+{
+  "scriptFormat": {
+    "version": "1.0",
+    "description": "完整制作脚本格式 - MovieFlow 标准输出",
+    "structure": {
+      "header": {
+        "projectName": "string",
+        "tool": "MovieFlow + Comic Script Plugin",
+        "director": "string",
+        "totalDuration": "number (seconds)",
+        "version": "string",
+        "date": "string (YYYY-MM-DD)",
+        "format": "9:16竖屏",
+        "style": "string"
+      },
+      "scenes": [
+        {
+          "sceneId": "number",
+          "sceneName": "string",
+          "duration": 10,
+          "startTime": "string (MM:SS)",
+          "endTime": "string (MM:SS)",
+          "shots": [
+            {
+              "shotNumber": "string",
+              "timeCode": "string",
+              "duration": "number",
+              "shotSize": "string",
+              "cameraMove": "string",
+              "angle": "string",
+              "description": "string",
+              "dialogue": "string",
+              "sfx": ["string"],
+              "transition": "string",
+              "notes": "string"
+            }
+          ],
+          "productionNotes": {
+            "keyframes": ["string"],
+            "effects": ["string"],
+            "challenges": ["string"]
+          },
+          "resources": {
+            "characters": ["string"],
+            "props": ["string"],
+            "effects": ["string"]
+          }
+        }
+      ],
+      "appendix": {
+        "characterList": [
+          {
+            "name": "string",
+            "appearance": "string",
+            "personality": "string",
+            "scenes": ["number"]
+          }
+        ],
+        "locationList": [
+          {
+            "name": "string",
+            "description": "string",
+            "scenes": ["number"]
+          }
+        ],
+        "resourceList": {
+          "audio": {
+            "bgm": [
+              {
+                "name": "string",
+                "file": "string",
+                "scenes": ["number"]
+              }
+            ],
+            "sfx": [
+              {
+                "name": "string",
+                "file": "string",
+                "usage": "string"
+              }
+            ]
+          },
+          "visual": {
+            "effects": [
+              {
+                "name": "string",
+                "type": "string",
+                "scenes": ["number"]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "example": {
+      "header": {
+        "projectName": "《斗破苍穹-退婚之辱》",
+        "tool": "MovieFlow + Comic Script Plugin",
+        "director": "AI Director",
+        "totalDuration": 60,
+        "version": "v1.0",
+        "date": "2025-09-22",
+        "format": "9:16竖屏",
+        "style": "玄幻热血风"
+      },
+      "scenes": [
+        {
+          "sceneId": 1,
+          "sceneName": "退婚开场",
+          "duration": 10,
+          "startTime": "00:00",
+          "endTime": "00:10",
+          "shots": [
+            {
+              "shotNumber": "001",
+              "timeCode": "00:00-00:03",
+              "duration": 3,
+              "shotSize": "中景",
+              "cameraMove": "固定",
+              "angle": "平视",
+              "description": "画面层次：前景-落叶,中景-萧炎,背景-府邸",
+              "dialogue": "",
+              "sfx": ["风声", "落叶"],
+              "transition": "淡入",
+              "notes": "开场氛围营造"
+            }
+          ],
+          "productionNotes": {
+            "keyframes": ["第60帧落叶落地"],
+            "effects": ["光效渐暗"],
+            "challenges": ["落叶飘落动画"]
+          },
+          "resources": {
+            "characters": ["萧炎", "纳兰嫣然"],
+            "props": ["退婚书", "落叶"],
+            "effects": ["光影特效"]
+          }
+        }
+      ]
+    }
+  }
+}

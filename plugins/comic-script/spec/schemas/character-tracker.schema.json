@@ -1,0 +1,165 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://movieflow.ai/schemas/comic-script/character-tracker.json",
+  "title": "Character Tracker",
+  "description": "角色追踪系统 - 跨Episode追踪所有角色的状态和发展",
+  "type": "object",
+  "required": ["project", "characters"],
+  "properties": {
+    "project": {
+      "type": "string",
+      "description": "项目名称"
+    },
+    "lastUpdated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "最后更新时间"
+    },
+    "characters": {
+      "type": "array",
+      "description": "角色列表",
+      "items": {
+        "type": "object",
+        "required": ["name", "role", "states"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "角色名称"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["protagonist", "antagonist", "supporting", "minor"],
+            "description": "角色类型"
+          },
+          "description": {
+            "type": "string",
+            "description": "角色描述"
+          },
+          "appearance": {
+            "type": "object",
+            "description": "外貌特征",
+            "properties": {
+              "age": {
+                "type": "string",
+                "description": "年龄"
+              },
+              "gender": {
+                "type": "string",
+                "description": "性别"
+              },
+              "physicalTraits": {
+                "type": "string",
+                "description": "身体特征"
+              },
+              "clothing": {
+                "type": "string",
+                "description": "服装风格"
+              },
+              "distinctiveFeatures": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "显著特征"
+              }
+            }
+          },
+          "states": {
+            "type": "array",
+            "description": "角色状态历史",
+            "items": {
+              "type": "object",
+              "required": ["episode"],
+              "properties": {
+                "episode": {
+                  "type": "string",
+                  "description": "Episode ID"
+                },
+                "scene": {
+                  "type": "string",
+                  "description": "场景ID"
+                },
+                "location": {
+                  "type": "string",
+                  "description": "所在地点"
+                },
+                "emotionalState": {
+                  "type": "string",
+                  "description": "情绪状态"
+                },
+                "physicalState": {
+                  "type": "string",
+                  "description": "身体状态"
+                },
+                "goals": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "当前目标"
+                },
+                "relationships": {
+                  "type": "object",
+                  "description": "与其他角色的关系",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "keyActions": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "关键行动"
+                },
+                "dialogue": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "关键对话"
+                },
+                "nextState": {
+                  "type": "string",
+                  "description": "预期的下一状态"
+                }
+              }
+            }
+          },
+          "arc": {
+            "type": "object",
+            "description": "角色弧线",
+            "properties": {
+              "startingPoint": {
+                "type": "string",
+                "description": "起点"
+              },
+              "currentPoint": {
+                "type": "string",
+                "description": "当前位置"
+              },
+              "endGoal": {
+                "type": "string",
+                "description": "目标"
+              },
+              "transformation": {
+                "type": "string",
+                "description": "转变类型"
+              }
+            }
+          }
+        }
+      }
+    },
+    "relationshipMap": {
+      "type": "object",
+      "description": "关系图谱",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
