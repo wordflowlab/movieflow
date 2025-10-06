@@ -159,7 +159,7 @@ MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前�
       // 创建 Slash 命令模板
       const commands = [
         {
-          name: 'video-specify',
+          name: 'specify',
           description: '创建视频项目规范',
           prompt: `# 创建视频项目规范
 
@@ -178,7 +178,7 @@ MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前�
 `
         },
         {
-          name: 'video-plan',
+          name: 'plan',
           description: '创建技术实现计划',
           prompt: `# 创建技术实现计划
 
@@ -197,7 +197,7 @@ MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前�
 `
         },
         {
-          name: 'video-script',
+          name: 'script',
           description: '生成视频脚本',
           prompt: `# 生成视频脚本
 
@@ -225,7 +225,7 @@ MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前�
 `
         },
         {
-          name: 'video-validate',
+          name: 'validate',
           description: 'L0+L1 渐进式验证',
           prompt: `# 执行渐进式验证
 
@@ -246,7 +246,7 @@ MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前�
 `
         },
         {
-          name: 'video-preview',
+          name: 'preview',
           description: 'L2 动态预览（可选）',
           prompt: `# 生成动态预览
 
@@ -267,7 +267,7 @@ MovieFlow 遵循 **渐进式验证** 的开发理念，在生成最终视频前�
 `
         },
         {
-          name: 'video-implement',
+          name: 'implement',
           description: '生成完整60秒视频',
           prompt: `# 生成完整视频
 
@@ -402,12 +402,12 @@ Thumbs.db
       }
 
       console.log(`  3. ${chalk.white.bold('使用 Slash 命令开始创作:')}`);
-      console.log(`     ${chalk.cyan('┌─ /video-specify')}  ${chalk.dim('创建视频规范')}`);
-      console.log(`     ${chalk.cyan('├─ /video-plan')}     ${chalk.dim('制定技术计划')}`);
-      console.log(`     ${chalk.cyan('├─ /video-script')}   ${chalk.dim('生成视频脚本')}`);
-      console.log(`     ${chalk.cyan('├─ /video-validate')} ${chalk.dim('L0+L1 验证 (推荐)')}`);
-      console.log(`     ${chalk.cyan('├─ /video-preview')}  ${chalk.dim('L2 预览 (可选)')}`);
-      console.log(`     ${chalk.cyan('└─ /video-implement')}${chalk.dim(' 生成完整视频')}`);
+      console.log(`     ${chalk.cyan('┌─ /specify')}   ${chalk.dim('创建视频规范')}`);
+      console.log(`     ${chalk.cyan('├─ /plan')}      ${chalk.dim('制定技术计划')}`);
+      console.log(`     ${chalk.cyan('├─ /script')}    ${chalk.dim('生成视频脚本')}`);
+      console.log(`     ${chalk.cyan('├─ /validate')}  ${chalk.dim('L0+L1 验证 (推荐)')}`);
+      console.log(`     ${chalk.cyan('├─ /preview')}   ${chalk.dim('L2 预览 (可选)')}`);
+      console.log(`     ${chalk.cyan('└─ /implement')} ${chalk.dim('生成完整视频')}`);
 
       console.log('\n' + chalk.yellow('💡 提示:'));
       console.log(chalk.dim('   • Slash 命令在 AI 助手中使用，不是终端命令'));

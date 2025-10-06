@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.3.1] - 2025-10-05
+
+### 优化
+
+- 🎯 **简化 Slash 命令**：移除 `video-` 前缀，使命令更简洁
+  - `/video-specify` → `/specify`
+  - `/video-plan` → `/plan`
+  - `/video-script` → `/script`
+  - `/video-validate` → `/validate`
+  - `/video-preview` → `/preview`
+  - `/video-implement` → `/implement`
+
+### 文档更新
+
+- 更新 README.md 所有命令示例
+- 更新 CHANGELOG.md 迁移指南
+- 更新 CLI 初始化提示信息
+
 ## [0.3.0] - 2025-10-05
 
 ### 重大变更 🎯
@@ -12,12 +30,12 @@ MovieFlow 全面重构为 Spec-Kit 兼容架构，实现**基础设施与业务�
 - 🎯 **设计理念**：CLI 负责基础设施，AI 助手负责业务逻辑
 
 #### Slash 命令系统
-- 🆕 `/video-specify` - 创建视频项目规范
-- 🆕 `/video-plan` - 制定技术实现计划
-- 🆕 `/video-script` - 生成视频脚本（替代 `script-export`）
-- 🆕 `/video-validate` - L0+L1 渐进式验证（替代 `validate`）
-- 🆕 `/video-preview` - L2 动态预览（替代 `preview`）
-- 🆕 `/video-implement` - 生成完整视频（替代 `generate`）
+- 🆕 `/specify` - 创建视频项目规范
+- 🆕 `/plan` - 制定技术实现计划
+- 🆕 `/script` - 生成视频脚本（替代 `script-export`）
+- 🆕 `/validate` - L0+L1 渐进式验证（替代 `validate`）
+- 🆕 `/preview` - L2 动态预览（替代 `preview`）
+- 🆕 `/implement` - 生成完整视频（替代 `generate`）
 
 #### 多平台支持
 - 🤖 **Claude Code**: `.claude/commands/*.md` (Markdown + YAML frontmatter)
@@ -44,11 +62,11 @@ MovieFlow 全面重构为 Spec-Kit 兼容架构，实现**基础设施与业务�
 
 ```bash
 # 旧版本 CLI 命令 → 新版本 Slash 命令
-movieflow validate my-video         → /video-validate
-movieflow preview my-video          → /video-preview
-movieflow generate my-video         → /video-implement
+movieflow validate my-video         → /validate
+movieflow preview my-video          → /preview
+movieflow generate my-video         → /implement
 movieflow sessions --list           → AI 助手自动管理
-movieflow script-export             → /video-script
+movieflow script-export             → /script
 ```
 
 ### 技术细节

@@ -8,7 +8,7 @@
 MovieFlow 是一个基于 [Spec-Kit](https://github.com/wordflowlab/spec-kit) 架构的 AI 视频生成工具，专门为抖音、微信视频号、快手等短视频平台设计。它采用**基础设施与业务分离**的设计理念：
 
 - **CLI 命令** (`movieflow init`, `movieflow check`)：负责项目初始化和环境检查
-- **Slash 命令** (`/video-specify`, `/video-validate` 等)：在 AI 助手中执行业务逻辑
+- **Slash 命令** (`/specify`, `/validate` 等)：在 AI 助手中执行业务逻辑
 
 这种架构让 AI 助手成为你的智能视频制作伙伴，而不仅仅是命令执行器。
 
@@ -155,12 +155,12 @@ MovieFlow 的所有业务逻辑都通过 AI 助手的 Slash 命令执行，支�
 在你的 AI 助手中（如 Claude Code）使用以下 Slash 命令：
 
 ```
-/video-specify      # 1️⃣ 创建视频项目规范
-/video-plan         # 2️⃣ 制定技术实现计划
-/video-script       # 3️⃣ 生成视频脚本
-/video-validate     # 4️⃣ L0+L1 渐进式验证（推荐）
-/video-preview      # 5️⃣ L2 动态预览（可选）
-/video-implement    # 6️⃣ 生成完整60秒视频
+/specify      # 1️⃣ 创建视频项目规范
+/plan         # 2️⃣ 制定技术实现计划
+/script       # 3️⃣ 生成视频脚本
+/validate     # 4️⃣ L0+L1 渐进式验证（推荐）
+/preview      # 5️⃣ L2 动态预览（可选）
+/implement    # 6️⃣ 生成完整60秒视频
 ```
 
 #### 渐进式验证流程（节省80%调试成本）
@@ -169,14 +169,14 @@ MovieFlow 采用渐进式验证系统，让你在生成最终视频前以极低�
 
 **1. L0级验证 - 文本质量分析（免费）**
 
-在 AI 助手中执行 `/video-validate`，会自动执行 L0 级分析：
+在 AI 助手中执行 `/validate`，会自动执行 L0 级分析：
 - 分析提示词质量
 - 评估场景完整性
 - 提供优化建议
 
 **2. L1级验证 - 图像预览（约3-6元，支持多种风格）**
 
-`/video-validate` 命令支持 4 种风格，成本递增：
+`/validate` 命令支持 4 种风格，成本递增：
 
 - **wireframe**：黑白线框图（约3元）- 快速验证分镜和构图，推荐首选
 - **sketch**：铅笔素描（约4元）- 验证构图和光影
@@ -186,7 +186,7 @@ MovieFlow 采用渐进式验证系统，让你在生成最终视频前以极低�
 在 AI 助手中使用：
 
 ```
-/video-validate
+/validate
 然后告诉 AI：使用 wireframe 风格验证场景1-3
 ```
 
@@ -200,7 +200,7 @@ MovieFlow 采用渐进式验证系统，让你在生成最终视频前以极低�
 如果你对静态效果已经很满意，可以直接跳到最终生成。L2 主要用于验证动态效果：
 
 ```
-/video-preview
+/preview
 然后告诉 AI：生成场景3的10秒预览，包含音频和字幕
 ```
 
@@ -218,7 +218,7 @@ MovieFlow 采用渐进式验证系统，让你在生成最终视频前以极低�
 **4. 最终生成 - 完整60秒视频（约170元）**
 
 ```
-/video-implement
+/implement
 然后告诉 AI：使用唐僧模板生成完整视频
 ```
 
@@ -261,12 +261,12 @@ movieflow check
 
 | Slash 命令 | 描述 | 对应原 CLI 命令 |
 |-----------|------|----------------|
-| `/video-specify` | 创建视频项目规范 | - |
-| `/video-plan` | 制定技术实现计划 | - |
-| `/video-script` | 生成视频脚本 | `movieflow generate-script` |
-| `/video-validate` | L0+L1 渐进式验证 | `movieflow validate` |
-| `/video-preview` | L2 动态预览 | `movieflow preview` |
-| `/video-implement` | 生成完整60秒视频 | `movieflow generate` |
+| `/specify` | 创建视频项目规范 | - |
+| `/plan` | 制定技术实现计划 | - |
+| `/script` | 生成视频脚本 | `movieflow generate-script` |
+| `/validate` | L0+L1 渐进式验证 | `movieflow validate` |
+| `/preview` | L2 动态预览 | `movieflow preview` |
+| `/implement` | 生成完整60秒视频 | `movieflow generate` |
 
 #### 为什么这样设计？
 
@@ -291,7 +291,7 @@ MovieFlow 内置了一个有趣的"唐僧说媒"视频模板，展示Q版唐僧�
 使用 AI 助手创建：
 
 ```
-/video-implement
+/implement
 然后告诉 AI：使用唐僧说媒模板生成视频，添加转场效果
 ```
 
@@ -371,7 +371,7 @@ graph LR
 
 ### VideoGenerator
 
-主要的视频生成类，由 `/video-implement` 命令调用：
+主要的视频生成类，由 `/implement` 命令调用：
 
 ```typescript
 const generator = new VideoGenerator({
@@ -400,7 +400,7 @@ await generator.generateVideo({
 
 ### PreviewService
 
-渐进式验证服务，由 `/video-validate` 和 `/video-preview` 命令调用：
+渐进式验证服务，由 `/validate` 和 `/preview` 命令调用：
 
 ```typescript
 const previewService = new PreviewService(imageClient);
@@ -535,13 +535,13 @@ A: MovieFlow v0.2.7 采用 Spec-Kit 架构，将基础设施与业务分离：
 
 **Q: 旧版本的 CLI 命令还能用吗？**
 
-A: v0.2.7 移除了以下 CLI 命令：
+A: v0.3.0 移除了以下 CLI 命令：
 
-- `movieflow validate` → 使用 `/video-validate`
-- `movieflow preview` → 使用 `/video-preview`
-- `movieflow generate` → 使用 `/video-implement`
+- `movieflow validate` → 使用 `/validate`
+- `movieflow preview` → 使用 `/preview`
+- `movieflow generate` → 使用 `/implement`
 - `movieflow sessions` → AI 助手自动处理
-- `movieflow script-export` → 使用 `/video-script`
+- `movieflow script-export` → 使用 `/script`
 
 **Q: 我不想用 AI 助手，可以直接调用 API 吗？**
 
@@ -559,7 +559,7 @@ A: 使用渐进式验证系统和风格选项：
 - L2级（约28元，可选）：生成10秒动态预览
 - 满意后再生成完整视频（约170元）
 
-在 AI 助手中执行 `/video-validate`，AI 会引导你选择合适的验证策略。
+在 AI 助手中执行 `/validate`，AI 会引导你选择合适的验证策略。
 
 **Q: 不同风格有什么区别？**
 
