@@ -127,7 +127,7 @@ movieflow generate my-video --template tang-monk
 ### 1. 创建项目规格
 ```bash
 # 使用AI助手命令
-/video-specify tang-monk-dating
+/specify tang-monk-dating
 ```
 
 ### 2. L0验证 - 优化提示词

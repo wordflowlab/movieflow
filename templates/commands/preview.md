@@ -1,4 +1,4 @@
-# /video-preview - L2级动态预览命令
+# /preview - L2级动态预览命令
 
 ## 概述
 生成10秒测试视频，验证动态效果和参数设置，确保最终效果符合预期。
@@ -11,7 +11,7 @@
 
 ## 使用方法
 ```bash
-/video-preview [项目名] [选项]
+/preview [项目名] [选项]
 ```
 
 ## 参数
@@ -25,22 +25,22 @@
 
 ### 基础预览（第一个场景）
 ```bash
-/video-preview tang-monk-dating
+/preview tang-monk-dating
 ```
 
 ### 预览特定场景
 ```bash
-/video-preview tang-monk-dating --scene 3
+/preview tang-monk-dating --scene 3
 ```
 
 ### 包含音频和字幕的完整预览
 ```bash
-/video-preview tang-monk-dating --with-audio --with-subtitle
+/preview tang-monk-dating --with-audio --with-subtitle
 ```
 
 ### 高质量预览
 ```bash
-/video-preview tang-monk-dating --quality high
+/preview tang-monk-dating --quality high
 ```
 
 ## 输出结果
@@ -98,9 +98,9 @@
 - 无明显渲染错误
 
 ### 后续操作
-- **效果满意**：执行 `/video-generate` 生成完整视频
+- **效果满意**：执行 `/implement` 生成完整视频
 - **需要调整**：修改参数后重新预览
-- **质量问题**：返回 `/video-plan` 调整技术方案
+- **质量问题**：返回 `/plan` 调整技术方案
 
 ## 成本说明
 - 单次预览：约28元（10秒视频）
@@ -139,6 +139,6 @@ PREVIEW_SAVE_LOCAL=true         # 保存到本地
 4. 预览效果接近但不完全等同于最终效果
 
 ## 相关命令
-- `/video-validate` - L0+L1级验证
-- `/video-generate` - 完整视频生成
-- `/video-tasks` - 任务分解
+- `/validate` - L0+L1级验证
+- `/implement` - 完整视频生成
+- `/tasks` - 任务分解

@@ -335,9 +335,9 @@ cat ./comic-scripts/[书名]-完整脚本.md
 movieflow generate --script ./comic-scripts/[书名]-完整数据.json
 
 # 3. 或者使用 MovieFlow 工作流
-/video-specify   # 基于导出的脚本创建规格
-/video-plan      # 规划技术实施
-/video-generate  # 生成视频
+/specify   # 基于导出的脚本创建规格
+/plan      # 规划技术实施
+/implement  # 生成视频
 ```
 
 ### 数据格式对接

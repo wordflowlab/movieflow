@@ -76,3 +76,4 @@ config.local.json
 other/
 .gemini/
 .windsurf/
+.playwright-mcp/

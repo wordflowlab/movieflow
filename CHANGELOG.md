@@ -1,5 +1,58 @@
 # Changelog
 
+## [0.4.1] - 2025-10-08
+
+### 重大优化 🎯
+
+#### 命令系统精简
+- 🔥 **移除6个冗余命令**：遵循 Spec-Kit "如果非必须，请勿增加" 的原则
+  - 删除 `/character`、`/script`、`/scene`、`/voice`（功能已融入 `/specify`）
+  - 删除 `/platform`、`/estimate`（功能已融入 `/plan`）
+- ✅ **保留6个核心命令**：
+  - `/specify` - 创建项目规格（包含角色、场景、音频、字幕设计）
+  - `/plan` - 制定技术方案（包含平台选择、成本预估）
+  - `/tasks` - 任务分解
+  - `/validate` - L0+L1验证
+  - `/preview` - L2预览
+  - `/implement` - 执行生成
+- 📊 **效果**：命令数量减少50%，学习成本大幅降低，流程更清晰
+
+#### 文档系统重构
+- 📘 **新增完整用户使用手册** (`docs/USER_GUIDE.md`)
+  - 5分钟上手指南
+  - 6个核心命令详解（每个命令包含用途、示例、FAQ）
+  - 3个完整创作流程案例（产品介绍、品牌故事、教程视频）
+  - 成本优化建议（渐进式验证、平台选择、批量优化）
+  - 故障排除指南（API错误、生成失败、音视频问题）
+  - 50+ 常见问题解答
+- 📚 **文档分类优化**：
+  - 用户文档：USER_GUIDE.md、workflow.md、progressive-validation-guide.md
+  - 技术文档：PRD.md、platform-adapters、提示词标准化
+  - 开发文档：local-development.md、data-model.md
+- 🔗 **README.md 增强**：添加完整的文档导航系统
+
+### 文件清理
+- 🗑️ **删除冗余文件**：
+  - 命令模板：character.md、script.md、scene.md、voice.md、platform.md、estimate.md
+  - 脚本文件：create-character.sh、create-script.sh、create-scene.sh、create-voice.sh
+- 📝 **更新文档引用**：PRD.md、workflow.md、implement.md、README.md
+
+### 升级指南
+
+**从 v0.4.0 升级**：
+
+旧的创作流程：
+```bash
+/specify → /script → /character → /scene → /voice → /platform → /estimate → /implement
+```
+
+新的创作流程（更简洁）：
+```bash
+/specify → /plan → /validate → /tasks → /preview → /implement
+```
+
+所有功能都已整合到核心命令中，无功能损失。
+
 ## [0.3.1] - 2025-10-05
 
 ### 优化

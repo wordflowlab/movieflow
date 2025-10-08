@@ -299,7 +299,7 @@ episodes/EP001-站队之谜/
 
 下一步：
   👉 /comic-episode EP002  - 继续下一个Episode
-  👉 /video-generate --spec episodes/EP001-站队之谜/output/EP001-spec.json
+  👉 /implement --spec episodes/EP001-站队之谜/output/EP001-spec.json
 ```
 
 ### 示例2: 批量制作
@@ -362,7 +362,7 @@ EP001: 60秒 ✅
 Episode制作完成后，可以：
 
 1. **继续制作**: `/comic-episode EP002`
-2. **生成视频**: `/video-generate --spec episodes/EP001-.../output/EP001-spec.json`
+2. **生成视频**: `/implement --spec episodes/EP001-.../output/EP001-spec.json`
 3. **导出合集**: `/comic-export-series EP001-EP010`
 4. **查看状态**: `/comic-status`
 

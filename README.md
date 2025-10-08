@@ -152,12 +152,14 @@ MovieFlow 的所有业务逻辑都通过 AI 助手的 Slash 命令执行，支�
 
 #### 完整创作流程
 
+**📘 [完整使用手册请查看 USER_GUIDE.md](./docs/USER_GUIDE.md)**
+
 在你的 AI 助手中（如 Claude Code）使用以下 Slash 命令：
 
 ```
-/specify      # 1️⃣ 创建视频项目规范
+/specify      # 1️⃣ 创建视频项目规格
 /plan         # 2️⃣ 制定技术实现计划
-/script       # 3️⃣ 生成视频脚本
+/tasks        # 3️⃣ 生成任务列表
 /validate     # 4️⃣ L0+L1 渐进式验证（推荐）
 /preview      # 5️⃣ L2 动态预览（可选）
 /implement    # 6️⃣ 生成完整60秒视频
@@ -261,9 +263,9 @@ movieflow check
 
 | Slash 命令 | 描述 | 对应原 CLI 命令 |
 |-----------|------|----------------|
-| `/specify` | 创建视频项目规范 | - |
+| `/specify` | 创建视频项目规格 | - |
 | `/plan` | 制定技术实现计划 | - |
-| `/script` | 生成视频脚本 | `movieflow generate-script` |
+| `/tasks` | 生成任务列表 | - |
 | `/validate` | L0+L1 渐进式验证 | `movieflow validate` |
 | `/preview` | L2 动态预览 | `movieflow preview` |
 | `/implement` | 生成完整60秒视频 | `movieflow generate` |
@@ -541,7 +543,6 @@ A: v0.3.0 移除了以下 CLI 命令：
 - `movieflow preview` → 使用 `/preview`
 - `movieflow generate` → 使用 `/implement`
 - `movieflow sessions` → AI 助手自动处理
-- `movieflow script-export` → 使用 `/script`
 
 **Q: 我不想用 AI 助手，可以直接调用 API 吗？**
 
@@ -633,6 +634,22 @@ A: 专业脚本格式提供了更详细的拍摄指导，包括镜头语言、�
 
 **Q: 可以导入自己的脚本吗？**
 A: 可以。你可以参考 `templates/professional-script-format.md` 的格式创建自己的脚本。
+
+## 📚 文档
+
+### 用户文档
+- **[用户使用手册 (USER_GUIDE.md)](./docs/USER_GUIDE.md)** - 完整的使用指南，包含所有命令详解和实战案例
+- [工作流程指南 (workflow.md)](./docs/workflow.md) - 详细的工作流程说明
+- [渐进式验证指南 (progressive-validation-guide.md)](./docs/progressive-validation-guide.md) - 成本优化策略
+
+### 技术文档
+- [产品需求文档 (PRD.md)](./docs/PRD.md) - 产品设计和技术架构
+- [平台适配器文档 (platform-adapters/)](./docs/platform-adapters/README.md) - 多平台支持说明
+- [视频提示词标准化指南 (video-prompt-standardization-guide.md)](./docs/video-prompt-standardization-guide.md) - 提示词优化技巧
+
+### 开发文档
+- [本地开发指南 (local-development.md)](./docs/local-development.md) - 开发环境配置
+- [数据模型 (data-model.md)](./docs/data-model.md) - 数据结构说明
 
 ## 🤝 贡献
 

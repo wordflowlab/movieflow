@@ -1,4 +1,4 @@
-# /video-validate - 渐进式验证命令
+# /validate - 渐进式验证命令
 
 ## 概述
 执行L0和L1级验证，快速且低成本地验证视频项目的提示词质量和视觉效果。
@@ -9,7 +9,7 @@
 
 ## 使用方法
 ```bash
-/video-validate [项目名] [选项]
+/validate [项目名] [选项]
 ```
 
 ## 参数
@@ -23,22 +23,22 @@
 
 ### 完整验证（L0+L1）
 ```bash
-/video-validate tang-monk-dating
+/validate tang-monk-dating
 ```
 
 ### 仅文本验证
 ```bash
-/video-validate tang-monk-dating --skip-l1
+/validate tang-monk-dating --skip-l1
 ```
 
 ### 使用云雾API生成预览
 ```bash
-/video-validate tang-monk-dating --provider yunwu
+/validate tang-monk-dating --provider yunwu
 ```
 
 ### 只预览特定场景
 ```bash
-/video-validate tang-monk-dating --scenes "1,3,6"
+/validate tang-monk-dating --scenes "1,3,6"
 ```
 
 ## 输出结果
@@ -82,7 +82,7 @@
 3. 无重大问题需要修正
 
 ### 后续操作
-- **通过验证**：继续执行 `/video-tasks` 进行任务分解
+- **通过验证**：继续执行 `/tasks` 进行任务分解
 - **需要优化**：根据建议修改提示词，重新验证
 - **视觉调整**：修改场景描述或风格设置
 
@@ -105,7 +105,7 @@ YUNWU_API_KEY=your_yunwu_key      # 云雾API密钥（备选）
 ```
 
 ## 相关命令
-- `/video-specify` - 创建项目规格
-- `/video-plan` - 制定技术计划
-- `/video-preview` - L2级动态预览
-- `/video-generate` - 完整视频生成
+- `/specify` - 创建项目规格
+- `/plan` - 制定技术计划
+- `/preview` - L2级动态预览
+- `/implement` - 完整视频生成

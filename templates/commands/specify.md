@@ -5,7 +5,7 @@ scripts:
   ps: scripts/powershell/create-video-project.ps1 "$ARGUMENTS"
 ---
 
-# /video-specify 命令 - 视频项目规格化
+# /specify 命令 - 视频项目规格化
 
 根据用户描述创建结构化的视频项目规格：
 
@@ -124,7 +124,7 @@ scripts:
 ## 示例
 
 ```
-/video-specify 创建一个展示产品功能的演示视频，目标用户是企业决策者，
+/specify 创建一个展示产品功能的演示视频，目标用户是企业决策者，
 通过场景化演示展现产品价值，风格专业但不失亲和力
 ```
 
@@ -138,5 +138,5 @@ scripts:
 
 **注意**：
 - 本命令仅生成需求规格，不涉及技术实现
-- 技术方案请使用 `/video-plan` 命令
+- 技术方案请使用 `/plan` 命令
 - MovieFlow参考了Spec-Kit的方法论，但针对视频生成做了专门优化

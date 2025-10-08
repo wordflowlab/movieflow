@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Create a new video project with directory structure
-# Used by /video-specify command
+# Used by /specify command
 set -e
 
 JSON_MODE=false

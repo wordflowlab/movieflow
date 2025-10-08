@@ -36,7 +36,7 @@ installation:
     🎬 专业影视改编系统 - Story Beats + Spec-Driven
 
     📖 工作流程：
-    /comic-init → /comic-analyze → /comic-episode → /video-generate
+    /comic-init → /comic-analyze → /comic-episode → /implement
 
     🎯 核心命令：
     - /comic-init           - 初始化项目
@@ -73,7 +73,7 @@ installation:
     1. /comic-init 官运 ~/Downloads/官运.txt
     2. /comic-analyze
     3. /comic-episode EP001
-    4. /video-generate --spec episodes/EP001-.../output/EP001-spec.json
+    4. /implement --spec episodes/EP001-.../output/EP001-spec.json
 
     🧑‍🎨 专家模式：
     - /expert comic-director     - 漫画导演专家

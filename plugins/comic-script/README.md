@@ -73,7 +73,7 @@ process_episode()    # 内存占用低
     ↓
 (MovieFlow主流程)
     ↓
-/video-generate --spec episodes/EP001-.../output/EP001-spec.json
+/implement --spec episodes/EP001-.../output/EP001-spec.json
 ```
 
 ## 命令说明
@@ -337,7 +337,7 @@ Comic Script Plugin (插件)          MovieFlow (主干)
     ↓
 [Episode制作]
     ↓
-[输出 spec.json] ---------------→ [/video-generate]
+[输出 spec.json] ---------------→ [/implement]
                                       ↓
                                   [场景渲染]
                                       ↓
@@ -354,11 +354,11 @@ Comic Script Plugin (插件)          MovieFlow (主干)
 /comic-episode EP001
 
 # 2. 使用主流程生成视频
-/video-generate --spec projects/官运/episodes/EP001-站队之谜/output/EP001-spec.json
+/implement --spec projects/官运/episodes/EP001-站队之谜/output/EP001-spec.json
 
 # 3. 继续下一个Episode
 /comic-episode EP002
-/video-generate --spec projects/官运/episodes/EP002-.../output/EP002-spec.json
+/implement --spec projects/官运/episodes/EP002-.../output/EP002-spec.json
 ```
 
 ## 专家模式
@@ -396,11 +396,11 @@ Comic Script Plugin (插件)          MovieFlow (主干)
 # 输出：生成 EP001-spec.json (3场景, 60秒)
 
 # 步骤4: 生成视频
-/video-generate --spec projects/官运/episodes/EP001-站队之谜/output/EP001-spec.json
+/implement --spec projects/官运/episodes/EP001-站队之谜/output/EP001-spec.json
 
 # 步骤5: 继续制作
 /comic-episode EP002
-/video-generate --spec projects/官运/episodes/EP002-.../output/EP002-spec.json
+/implement --spec projects/官运/episodes/EP002-.../output/EP002-spec.json
 
 # 步骤6: 批量制作
 /comic-episode EP003-EP010
