@@ -58,17 +58,25 @@ L0 验证（免费）→ L1 验证（3-18元）→ L2 验证（28元，可选）
 
 ### 实践
 
-**强制流程**：
+**强制流程**（不可跳过或颠倒）：
 ```
-/specify → /plan → /script → /validate → /implement
-不得跳过或颠倒顺序
+/specify → /clarify → /plan → /tasks → /validate → /implement
 ```
+
+**流程说明**：
+- `/specify`: 创建初始规格，标记 `[NEEDS CLARIFICATION]`
+- `/clarify`: **必经阶段** - 系统化消除所有模糊点（10维度覆盖）
+- `/plan`: 验证规格完整性，创建技术方案（如有 NEEDS CLARIFICATION 则拒绝）
+- `/tasks`: 生成任务列表
+- `/validate`: 渐进式验证（L0→L1→L2?→L3）
+- `/implement`: 执行视频生成
 
 **规范完整性**：
 - spec.md必须在/implement前完成
 - spec.md不得包含实现细节（平台选择在plan.md中）
 - spec.md必须可被非技术人员理解
 - 所有创意决策必须在spec中体现
+- **所有 `[NEEDS CLARIFICATION]` 必须在 `/clarify` 中消除**
 
 **维护即演进**：
 - 修改视频 = 修改规范 + 重新生成
@@ -78,14 +86,24 @@ L0 验证（免费）→ L1 验证（3-18元）→ L2 验证（28元，可选）
 ### 质量关口 (Gates)
 
 ```markdown
+**在 /clarify 时检查**：
+- [ ] spec.md已创建并包含基本结构
+- [ ] 标记了所有 [NEEDS CLARIFICATION]
+- [ ] 至少 1 个高影响模糊点需要澄清
+
+**在 /plan 时检查**：
+- [ ] /clarify 已运行（或明确跳过，需文档化理由）
 - [ ] spec.md已完成并审核
+- [ ] 所有 [NEEDS CLARIFICATION] 已解决（必须 0 个）
 - [ ] L0验证通过
-- [ ] 所有[NEEDS CLARIFICATION]已解决
 - [ ] 成功标准可衡量
 - [ ] 平台需求已明确
 ```
 
-**违反后果**：在spec.md完成前执行/implement将被终止。
+**违反后果**：
+- 在spec.md完成前执行 `/implement` 将被终止
+- 在 `/clarify` 前执行 `/plan` 将收到警告（下游返工风险 60-80%）
+- `/plan` 发现任何 `[NEEDS CLARIFICATION]` 标记将拒绝执行
 
 ---
 
@@ -550,12 +568,23 @@ if (spec要求4K放大) → 执行Phase 4
 ## 附录：快速检查清单
 
 ```markdown
-### 在/specify时检查
+### 在 /specify 时检查
 - [ ] 创意概念清晰
 - [ ] 目标平台明确
 - [ ] 成功标准可衡量
+- [ ] 标记所有 [NEEDS CLARIFICATION]
 
-### 在/plan时检查
+### 在 /clarify 时检查（必经阶段）
+- [ ] spec.md已创建
+- [ ] 10维度覆盖度扫描完成
+- [ ] 最多5个高影响问题已提问
+- [ ] 所有答案已集成到spec.md
+- [ ] Clarifications部分已创建
+- [ ] 所有 [NEEDS CLARIFICATION] 已消除
+
+### 在 /plan 时检查
+- [ ] /clarify 已完成（或跳过且文档化）
+- [ ] spec.md 无任何 [NEEDS CLARIFICATION]
 - [ ] Constitution Check全部通过或已记录违反
 - [ ] Phase定义完整
 - [ ] 平台选择有理由

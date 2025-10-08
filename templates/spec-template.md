@@ -90,6 +90,16 @@ When creating this spec from a user prompt:
 
 ---
 
+## Clarifications
+
+*此部分由 `/clarify` 命令自动生成和更新。记录所有澄清会话的问答和决策。*
+
+### Session YYYY-MM-DD
+
+- Q: [示例问题] → A: [示例答案]
+
+---
+
 ## Scenes & Narrative *(mandatory)*
 
 ### Narrative Structure
@@ -358,11 +368,25 @@ When creating this spec from a user prompt:
 
 **Next Steps**:
 
-1. Resolve all [NEEDS CLARIFICATION] markers
-2. Review with stakeholders
-3. Run `/plan` to generate implementation plan
-4. Constitution Check in plan.md
-5. Proceed to `/script` for scene breakdown
+1. **运行 `/clarify` 命令**（必经阶段）
+   - 系统化消除所有 [NEEDS CLARIFICATION] 标记
+   - 10 维度覆盖度扫描
+   - 最多 5 个高影响问题
+   - 答案自动集成到 spec.md
+
+2. **Review with stakeholders**
+   - 审核完整规格
+   - 确认所有决策
+
+3. **运行 `/plan` 创建技术方案**
+   - 验证无 [NEEDS CLARIFICATION]
+   - Constitution Check
+   - 平台选择和成本估算
+
+4. **后续流程**
+   - `/tasks` - 任务分解
+   - `/validate` - 渐进式验证
+   - `/implement` - 执行生成
 
 ---
 

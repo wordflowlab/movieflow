@@ -9,31 +9,35 @@
 ```
 1. Load video spec from spec.md
    → If not found: ERROR "No spec at {path}"
-2. Fill Technical Context
+2. Scan spec.md for [NEEDS CLARIFICATION] markers
+   → If ANY markers remain: ERROR "/clarify must be run first to resolve all ambiguities"
+   → Instruct user: "Run /clarify before /plan to complete the specification"
+   → List all remaining [NEEDS CLARIFICATION] markers with line numbers
+3. Fill Technical Context
    → Extract from spec: platform, style, duration, budget
    → Detect Project Complexity: simple / standard / complex
-3. Fill Constitution Check section
+4. Fill Constitution Check section
    → Evaluate against 10 principles in constitution.md
    → If violations exist: Document in Complexity Tracking
    → If no justification possible: ERROR "Simplify approach first"
-4. Execute Phase Planning
+5. Execute Phase Planning
    → Determine which Phases needed based on spec preferences
    → For each Phase: define platform, cost, output, success criteria
-5. Generate Platform Selection Strategy
+6. Generate Platform Selection Strategy
    → Choose primary platform with rationale
    → Define backup platforms and fallback conditions
-6. Generate Character Consistency Strategy (if characters exist)
+7. Generate Character Consistency Strategy (if characters exist)
    → Determine method: 13-image fusion / prompt-固定 / reference images
-7. Generate Validation Strategy
+8. Generate Validation Strategy
    → L0: Always included (free)
    → L1: wireframe or Phase 0 output or full
    → L2: Only if complex movements/first-time platform
-8. Calculate Total Cost Estimate
+9. Calculate Total Cost Estimate
    → Sum all phases + validation
    → If over budget: ERROR "Reduce scope or increase budget"
-9. Run Post-Planning Constitution Check
-   → Re-verify compliance after all decisions
-10. STOP - Ready for /script command
+10. Run Post-Planning Constitution Check
+    → Re-verify compliance after all decisions
+11. STOP - Ready for /tasks command
 ```
 
 **IMPORTANT**: The /plan command generates strategy and architecture. /script will generate actual prompts and scene details.
@@ -99,13 +103,16 @@
 
 ### II. 规范优先 (Spec-First)
 
+- [ ] `/clarify` 已运行（或明确跳过，需文档化理由）
 - [ ] spec.md已完成并审核
-- [ ] 所有[NEEDS CLARIFICATION]已解决
+- [ ] **所有 [NEEDS CLARIFICATION] 已解决**（必须 0 个，/plan 步骤 2 已验证）
+- [ ] spec.md 包含 `## Clarifications` 部分（记录所有决策）
 - [ ] 成功标准可衡量
 - [ ] 不包含实现细节（平台选择在此plan中）
 
 **Status**: [PASS / FAIL / NEEDS JUSTIFICATION]
 **Notes**: [如有违反，说明原因]
+**Clarification Status**: [✓ /clarify completed | ⚠ /clarify skipped (reason: ...)]
 
 ### III. 质量通过迭代 (Quality Through Iteration)
 

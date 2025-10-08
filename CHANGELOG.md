@@ -1,5 +1,132 @@
 # Changelog
 
+## [0.4.3] - 2025-10-09
+
+### 重大升级 🎯 - SDD 方法论深度整合
+
+#### 核心特性：新增 `/clarify` 命令（质量门控）
+
+**背景**：MovieFlow v0.4.1 简化了命令系统（12→6），但缺少 Spec-Kit SDD 方法论的关键环节 - 系统化澄清机制。v0.4.3 填补这一缺口。
+
+**问题**：
+- 当前流程：`/specify` (标记 NEEDS CLARIFICATION) → `/plan` （检查但不强制）
+- 结果：后期返工成本高（60-80% 成本浪费，Constitution 记录）
+
+**解决方案**：
+- 新流程：`/specify` → `/clarify` **（必经阶段）** → `/plan` （强制验证）→ `/tasks` → `/validate` → `/implement`
+
+#### 1. 新增 `/clarify` 命令
+
+**核心能力**：
+- ✅ **10 维度视频专属覆盖度扫描**：
+  1. 视觉风格与美术方向
+  2. 角色设计与一致性
+  3. 场景描述与环境
+  4. 叙事结构与情绪弧线
+  5. 镜头语言与构图
+  6. 光照与色彩
+  7. 音频与对话
+  8. 平台适配与技术约束
+  9. 预算与成本控制
+  10. 边缘情况与合规性
+
+- ✅ **结构化提问机制**：
+  - 最多 5 个高度针对性问题
+  - 多选或 ≤5 字短答案
+  - 优先级排序：(影响 × 不确定性) 启发式
+
+- ✅ **即时文档更新**：
+  - 每个答案立即集成到 spec.md
+  - 添加 `## Clarifications` 部分（可追溯性）
+  - 同步更新相应规格章节
+  - 删除已解决的 `[NEEDS CLARIFICATION]` 标记
+
+#### 2. 强制质量门控机制
+
+**Constitution.md 更新**：
+- 强制流程更新：`/specify` → `/clarify` → `/plan` → ...
+- 质量关口新增 `/clarify` 阶段检查
+- 违反后果：`/plan` 发现 NEEDS CLARIFICATION → ERROR 拒绝执行
+
+**plan-template.md 强化**：
+- 步骤 2：扫描 spec.md，如有任何 `[NEEDS CLARIFICATION]` → ERROR
+- Constitution Check 新增 `/clarify` 完成状态验证
+- 明确指示用户运行 `/clarify`
+
+**spec-template.md 更新**：
+- 新增 `## Clarifications` 部分模板
+- Next Steps 更新：强调 `/clarify` 为必经阶段
+
+#### 3. 基础设施
+
+**新增文件**：
+- `templates/commands/clarify.md` - 完整的中文命令定义（10 维度）
+- `scripts/bash/check-prerequisites.sh` - 前置条件检查脚本（支持 JSON 输出）
+
+#### 4. 预期收益
+
+- 💰 **降低返工成本 60-80%**（Constitution 文档化的数据）
+- 📊 **系统化质量保证**：10 维度覆盖，无遗漏
+- 🔒 **强制门控**：`/plan` 拒绝不完整规格
+- 📝 **可追溯性**：所有澄清决策记录在案
+- ✅ **符合 Spec-Kit SDD 标准方法论**
+
+#### 5. 命令数量说明
+
+- v0.4.1: 6 个核心命令（刚精简 -50%）
+- v0.4.3: 7 个核心命令（+1 个**方法论核心命令**）
+- 增加理由：填补 SDD 流程关键缺口，遵循 Spec-Kit 标准
+
+#### 6. 工作流对比
+
+**旧流程**（v0.4.1）：
+```
+/specify → /plan → /tasks → /validate → /implement
+（缺少系统化澄清，后期返工多）
+```
+
+**新流程**（v0.4.3）：
+```
+/specify → /clarify → /plan → /tasks → /validate → /implement
+          ↑
+    必经阶段，10维度覆盖，强制门控
+```
+
+#### 7. 升级指南
+
+**从 v0.4.1 升级到 v0.4.3**：
+
+1. 创建规格后，**必须**运行 `/clarify`
+2. `/clarify` 会通过最多 5 个问题系统化消除模糊点
+3. 所有答案自动集成到 spec.md
+4. `/plan` 会验证，如有遗漏的 NEEDS CLARIFICATION → 报错
+
+**示例**：
+```bash
+# 1. 创建规格
+/specify 创建一个产品介绍视频...
+
+# 2. 系统化澄清（新增，必经）
+/clarify
+
+# 3. 创建技术方案（会验证澄清完成）
+/plan
+
+# 4. 后续流程
+/tasks
+/validate
+/implement
+```
+
+### 技术细节
+
+- 脚本语言：Bash（check-prerequisites.sh）
+- 无外部依赖（不使用 jq）
+- 支持 JSON 和文本输出模式
+- 与 Spec-Kit v2.1.1 方法论对齐
+
+---
+
 ## [0.4.1] - 2025-10-08
 
 ### 重大优化 🎯
