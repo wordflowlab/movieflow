@@ -265,7 +265,7 @@ export class JimengAdapter extends BaseVideoPlatformAdapter {
         throw new Error(`API error: ${result.message}`);
       }
 
-      const status = result.data?.status;
+      const status = result.data?.status as string | undefined;
       const videoUrl = result.data?.video_url;
 
       // 映射状态
@@ -276,6 +276,8 @@ export class JimengAdapter extends BaseVideoPlatformAdapter {
           break;
         case 'processing':
         case 'pending':
+        case 'generating':
+        case 'in_queue':
           mappedStatus = 'processing';
           break;
         case 'failed':
