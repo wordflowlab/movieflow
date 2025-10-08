@@ -639,6 +639,7 @@ A: 可以。你可以参考 `templates/professional-script-format.md` 的格式�
 
 ### 用户文档
 - **[用户使用手册 (USER_GUIDE.md)](./docs/USER_GUIDE.md)** - 完整的使用指南，包含所有命令详解和实战案例
+- **[SDD 实践指南 (practical-guide.md)](./docs/practical-guide.md)** - 通过"唐僧相亲"案例深入学习 SDD 方法论，包含完整对话流程和决策树
 - [工作流程指南 (workflow.md)](./docs/workflow.md) - 详细的工作流程说明
 - [渐进式验证指南 (progressive-validation-guide.md)](./docs/progressive-validation-guide.md) - 成本优化策略
 
