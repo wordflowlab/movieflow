@@ -312,11 +312,8 @@ ${cmd.prompt}
         // Gemini 格式 (TOML)
         if (aiDirs.some(dir => dir.includes('.gemini'))) {
           const geminiPath = path.join(projectPath, '.gemini', 'commands', `${cmd.name}.toml`);
-          const geminiContent = `description = "${cmd.description}"
-
-prompt = """
-${cmd.prompt}
-"""
+          const geminiContent = `description = ${JSON.stringify(cmd.description)}
+prompt = ${JSON.stringify(cmd.prompt)}
 `;
           await fs.writeFile(geminiPath, geminiContent);
         }
